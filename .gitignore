@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# gguf models
+Meta-Llama-3-8B-Instruct.Q5_0.gguf
+mistral-7b-instruct-v0.2.Q5_K_M.gguf
+llama3-chatqa-1.5-8b.Q5_K_M.gguf
+
 # Distribution / packaging
 .Python
 build/
@@ -129,6 +134,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+thesisvenv/
 
 # Spyder project settings
 .spyderproject
