@@ -4,10 +4,10 @@ import ollama
 import pandas as pd
 import yaml
 import sys
-from langchain_core.prompts import PromptTemplate
+# from langchain_core.prompts import PromptTemplate
 
 
-# Model path
+# Model path for llama-3-8B-instruct gguf model
 model_path = r"C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 
 # Initialize the LlamaCPP model, removing the max_new_tokens parameter and adjusting the context window
@@ -21,17 +21,27 @@ llm = Llama(
 
 # Define the standard set of questions which will be used across all tests
 questions = ["Can you tell me how much carbon emission is produced by a 24 core machine which is using on average 0.0807847747114039% CPU utilisation?", 
-                "How much is the carbon footprint of the pool or a single unit within the pool over the last month/week?", 
-                "Which is the unit that uses GPU most intensively?", 
-                "Give me a summary of the compute usage within the unit's pool over the last day/week/month?",
-                    "Which of the machines in the pool do you recommend being moved to the next level up of compute power and why  based on CPU usage?"]
+                "How much is the total carbon footprint for all the machines", 
+                "Which is the machine that uses GPU most intensively on average?", 
+                "Give me a summary of the compute usage for all the machines",
+                "Which of the machines do you recommend being moved to the next level up of compute power and why?",
+                "What is the average GPU usage for each machine?"]
 
+few_shots = [ 
+              ("How much is the carbon footprint of all the machines?", 
+              "Look in <BACKGROUND> and add together all the 'machine-carbon-emission-value' values for each 'machine-id'"),
+                ("Which is the machine that uses GPU most intensively on average?", 
+            "Look in <USAGE> and find the 'machine-id' with the highest 'GPU average usage'"),
+                ("Give me a summary of the compute usage for all the machines",
+                "Look in <USAGE> and find the 'CPU average usage' and 'GPU average usage' for each 'machine-id'")
+                
+                ]
 
 def send_prompt(prompt: str, interface: str = "ollama", 
                 max_tokens: int = 1024) -> str:
     if interface == "ollama":
         response = ollama.generate(model="llama3",
-                                   prompt=prompt, keep_alive='24h')
+                                   prompt=prompt, keep_alive='24h', options={'num_ctx': 16000})
         response = response['response']
     else: 
         # assume llama_cpp
@@ -40,11 +50,67 @@ def send_prompt(prompt: str, interface: str = "ollama",
     return response
 
 
-def load_data_files() -> tuple[str,str]:
+def extract_data_from_yaml(yaml_data: yaml) -> dict:
+    """
+    yaml structure is:
+    tree:
+        children:
+            child:
+                children:
+                    z2 mini:
+                        children:
+    """
+    """iterate through the bottom children and extract the data"""
+    machine_list = []
+    """machine_dict = {}"""
+    lowest_children_level = yaml_data['tree']['children']['child']['children']['z2 mini']['children']
+    for machine in lowest_children_level:
+        for child in lowest_children_level[machine]['outputs']:
+            """convert child to a dictionary"""
+            child = dict(child)
+            """only pull out values for keys timestamp, instance-type, sci """
+            child = {k: v for k, v in child.items() if k in ['timestamp', 'instance-type', 'sci']}
+            """ convert timestamp to a UTC datetime not an object"""
+            child['timestamp'] = pd.to_datetime(child['timestamp'], utc=True)
+            """convert that to a string"""
+            child['timestamp'] = child['timestamp'].strftime('%Y-%m-%d')
+            """round sci to 6 dp"""
+            child['sci'] = round(child['sci'], 6)
+            """letters 7 to 10 are unique to each machine"""
+            child['machine-id'] = machine[6:]
+            """replace instance-type with machine-family, and sci with machine-carbon-emission-value"""
+            child['machine-family'] = child.pop('instance-type')
+            child['machine-carbon-emission-value'] = child.pop('sci')
+            """machine_dict['machine-id-'+machine] = child"""
+            machine_list.append(child)
+    return machine_list
+
+def rewrite_csv_input(cleaned_machine_usage_data: dict, num_machines: int = 8) -> dict:
+    """rewrite the csv data to be more readable - with machine names instead of index"""
+    machine_id_list = cleaned_machine_usage_data['machine-id-list']
+    cleaned_machine_usage_data.pop('machine-id-list')
+    """remove any empty subdict"""
+    for k, v in cleaned_machine_usage_data.copy().items():
+        if not v:
+            cleaned_machine_usage_data.pop(k)
+    """ now insert machine name instead of index"""
+    new_machine_usage_data = {}
+    for k, v_subdict in cleaned_machine_usage_data.items():
+        new_machine_usage_data[k] = {}
+        for machine_index, v in v_subdict.items():
+            """important: this excludes some rows from the csv - TODO: check they're not useful or important to LLM"""
+            if machine_index < num_machines:
+                new_machine_usage_data[k][machine_id_list[machine_index][6:]] = v
+    return new_machine_usage_data
+     
+        
+
+def load_data_files(return_yaml: bool = False) -> tuple:
     # Load the YAML file which contains the carbon emissions data for the machines
     yaml_file = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest\outputs\z2_G4_Sci_Scores_Output.yaml'
     # Load yaml file
     with open(yaml_file, 'r') as f:
+        """this data is what is put in <BACKGROUND> tag in the prompt"""
         emissions_reference_data = yaml.load(f, Loader=yaml.SafeLoader)
         emissions_reference_data_str = yaml.dump(emissions_reference_data)
         # split by first occureance of word defaults and take [1]
@@ -55,32 +121,68 @@ def load_data_files() -> tuple[str,str]:
     file_path = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\data\1038-0610-0614-day.xlsx'
     try:
         machine_usage_data = pd.read_excel(file_path, skiprows=4)
-        # convert to dictionary
-        machine_usage_data = str(machine_usage_data.to_dict())
+        
 
     except Exception as e:
         print(f"Error reading the Excel file: {e}")
         exit()
+    # convert to dictionary
+    machine_usage_data = machine_usage_data.to_dict()
+    """remove all keys and values from machine_usage_data dict where the value is nan"""
+    cleaned_machine_usage_data = {}
+    for mud_k, mud_v in machine_usage_data.items():
+        cleaned_machine_usage_data[mud_k] = {k: v for k, v in mud_v.items() if str(v) != 'nan'}
+    """machine list key is 'Unnamed: 0'"""
+    cleaned_machine_usage_data['machine-id-list'] = cleaned_machine_usage_data.pop('Unnamed: 0')
+    """go through all levels of the dict and if an element is numerical round it to 6 dp"""
+    for mud_k, mud_v in cleaned_machine_usage_data.items():
+        for k, v in mud_v.items():
+            if isinstance(v, float):
+                cleaned_machine_usage_data[mud_k][k] = round(v, 6)
+    """move machine neames into each dict"""
+    
+    cleaned_machine_usage_data = rewrite_csv_input(cleaned_machine_usage_data)
+    machine_usage_data = str(cleaned_machine_usage_data)
+    """replace all ravw string \n with a space"""
+    machine_usage_data = machine_usage_data.replace(r'\n', ' ')
+    """replace 'avg' with 'average usage'"""
+    machine_usage_data = machine_usage_data.replace('avg', 'average usage')
+  
+    if return_yaml:
+        return emissions_reference_data, machine_usage_data
     return emissions_reference_data_str, machine_usage_data
 
 
-# Calling the function to load the data files and setting the global variables
-emissions_reference_data, machine_usage_data = load_data_files()
-
 def answer_question_with_data(question: int) -> str:
+    emissions_reference_data, machine_usage_data = load_data_files(return_yaml=True)
+    emissions_reference_data = extract_data_from_yaml(emissions_reference_data)
+    emissions_reference_data = str(emissions_reference_data)
+    
     prompt = f"""Here is some background information on how processer usage and carbon emissions are related:
                 <BACKGROUND> {emissions_reference_data} </BACKGROUND>
                 Here are details on usage for a number of machines:
                 <USAGE DETAILS> {machine_usage_data} </USAGE DETAILS>
     """
-    prompt += f"""Question: {questions[question]}"""
+    prompt += """Here are some methodologies you can use to answer questions using this data:
+    """
+    for i,eg in enumerate(few_shots):
+        prompt += f"""Example Question {i}: {eg[0]} 
+        """
+        prompt += f"""Answer methodology: {eg[1]}
+        """
+    prompt += f"""
+    Here is a new question for you to answer:
+      {questions[question]}"""
+    prompt += """ Break your answer down into steps and explain your reasoning. """
+    print("prompt:", prompt)
+    input("Press Enter to continue...")
     response = send_prompt(prompt, interface="ollama")
     return response
 
-q = 5
+q = 3
 print(f"ANSWERING QUESTION {q}:")
 print(answer_question_with_data(q-1))
-input("Press Enter to continue...")
+sys.exit()
      
 
 def benchmark_no_data():
@@ -88,6 +190,7 @@ def benchmark_no_data():
     # BENCHMARKING FOR LLAMA-INSTRUCT-8B MODEL, NO INPUT DATA & ONLY RECOMMENDED PROMPT FOR NO CONTEXT
     # ============================================================================================
     # Define the prompt template: this is the recommended, basic template for llama3-instruct-8B model for true benchmarking 
+    
     template = """
             <|begin_of_text|>
             <|start_header_id|>system<|end_header_id|>
@@ -114,7 +217,6 @@ def benchmark_no_data():
         print('formatted prompt:', formatted_prompt)
         response = send_prompt(formatted_prompt, interface="ollama")
         """response = llm(prompt=formatted_prompt, max_tokens=1024)"""
-
         # Print the response
         print(response)
 
@@ -150,28 +252,13 @@ def generate_sentences_for_Z4R_G4(list_of_carbon_data_per_Z4R_G4):
     """Function to generate sentences for Z4R G4 machines' carbon data."""
     sentences = []
     for machine in list_of_carbon_data_per_Z4R_G4:
-        sentence = f"""
-                    This machine is the {machine['machine-code']} and is a part of the {machine['instance-type']} machine family. All of the z2 mini machines and the Z4R G4 machines make up one pool of units.
-                    This {machine['machine-code']} machine's CPU used {machine['cpu-wattage-times-duration']} Watts over the course of {machine['duration']} seconds, which is 2.5 days.
-                    This {machine['machine-code']} machine's GPU used {machine['gpu-wattage-times-duration']} Watts over the course of {machine['duration']} seconds, which is 2.5 days.
-                    This {machine['machine-code']} machine's embodied emissions (carbon emissions produced during the manufacturing of the machine) are {machine['device/emissions-embodied']} gCO2e.
-                    The amount of embodied carbon emissions allocated for the {machine['duration']} seconds that this machine was running is {machine['carbon-embodied']} gCO2.
-                    This {machine['machine-code']} machine's operational emissions (carbon emissions produced during the operation of the machine) are {machine['carbon-operational']} gCO2e.
-                    In total, the carbon emissions produced by machine {machine['machine-code']} is {machine['carbon']} gCO2e over {machine['duration']} seconds."""
-        # different approach to formatting the sentence
-        sentence = f"""
-                    <MACHINE>{machine['machine-code']}</MACHINE><MACHINE-FAMILY>{machine['instance-type']}</MACHINE-FAMILY>. 
-                    <<INFO>All of the z2 mini machines and the Z4R G4 machines make up one pool of unitS.</INFO>
-                    <MACHINE-CPU-USAGE-WATTS>{machine['cpu-wattage-times-duration']}</MACHINE-CPU-USAGE-WATTS>
-                    {machine['duration']} seconds, which is 2.5 days.
-                    This {machine['machine-code']} machine's GPU used {machine['gpu-wattage-times-duration']} Watts over the course of {machine['duration']} seconds, which is 2.5 days.
-                    This {machine['machine-code']} machine's embodied emissions (carbon emissions produced during the manufacturing of the machine) are {machine['device/emissions-embodied']} gCO2e.
-                    The amount of embodied carbon emissions allocated for the {machine['duration']} seconds that this machine was running is {machine['carbon-embodied']} gCO2.
-                    This {machine['machine-code']} machine's operational emissions (carbon emissions produced during the operation of the machine) are {machine['carbon-operational']} gCO2e.
-                    In total, the carbon emissions produced by machine {machine['machine-code']} is {machine['carbon']} gCO2e over {machine['duration']} seconds."""
-        
-        
-        sentences.append(sentence)
+        sentence_with_tag = f"""
+                    <DURATION-IN-SECONDS>{machine['duration']}</DURATION-IN-SECONDS>.
+                    <MACHINE>{machine['machine-code']}</MACHINE><MACHINE-FAMILY>{machine['instance-type']}</MACHINE-FAMILY>.
+                    <INFO>All of the z2 mini machines and the Z4R G4 machines make up one pool of units</INFO>.
+                    <SCI-CARBON-EMISSION-VALUE>{machine['sci']}</SCI-CARBON-EMISSION-VALUE>."""
+        sentences.append(sentence_with_tag)
+    print(sentences)
     return sentences
 
 
@@ -179,15 +266,12 @@ def generate_sentences_for_z2_mini_carbon_data(list_of_carbon_data_per_z2_mini):
     """Function to generate sentences for z2 mini machines' carbon data."""
     sentences = []
     for machine in list_of_carbon_data_per_z2_mini:
-        sentence = f"""
-                    This machine is the {machine['machine-code']} and is a part of the {machine['instance-type']} machine family. All of the z2 mini machines and the Z4R G4 machines make up one pool of units.
-                    This {machine['machine-code']} machine's CPU used {machine['cpu-wattage-times-duration']} Watts over the course of {machine['duration']} seconds, which is 2.5 days.
-                    This {machine['machine-code']} machine's GPU used {machine['gpu-wattage-times-duration']} Watts over the course of {machine['duration']} seconds, which is 2.5 days.
-                    This {machine['machine-code']} machine's embodied emissions (carbon emissions produced during the manufacturing of the machine) are {machine['device/emissions-embodied']} gCO2e.
-                    The amount of embodied carbon emissions allocated for the {machine['duration']} seconds that this machine was running is {machine['carbon-embodied']} gCO2.
-                    This {machine['machine-code']} machine's operational emissions (carbon emissions produced during the operation of the machine) are {machine['carbon-operational']} gCO2e.
-                    In total, the carbon emissions produced by machine {machine['machine-code']} is {machine['carbon']} gCO2e over {machine['duration']} seconds."""
-        sentences.append(sentence)
+        sentence_with_tag = f"""
+                    <DURATION-IN-SECONDS>{machine['duration']}</DURATION-IN-SECONDS>.
+                    <MACHINE>{machine['machine-code']}</MACHINE><MACHINE-FAMILY>{machine['instance-type']}</MACHINE-FAMILY>.
+                    <INFO>All of the z2 mini machines and the Z4R G4 machines make up one pool of units</INFO>.
+                    <SCI-CARBON-EMISSION-VALUE>{machine['sci']}</SCI-CARBON-EMISSION-VALUE>."""
+        sentences.append(sentence_with_tag)
     return sentences
 
 
@@ -200,8 +284,6 @@ def generate_sentences_for_all_machines_carbon_data(machines_list):
     sentences_z2_mini = generate_sentences_for_z2_mini_carbon_data(list_of_carbon_data_per_z2_mini)
     carbon_data_for_all_machines.extend(sentences_Z4R_G4)
     carbon_data_for_all_machines.extend(sentences_z2_mini)
-    # for sentence in carbon_data_for_all_machines:
-        # print(sentence)
     return carbon_data_for_all_machines
 
 
@@ -226,23 +308,20 @@ def generate_sentence(row):
     GPU_mem_max = row['MEM\nmax']
     GPU_mem_avg = row['MEM\navg']
     GPU_mem_over_80_occurrences = row['MEM\n#oc > 80%']
-    sentence = f"""This data was taken over a timespan of 216000 seconds, which is 2.5 days.
-                    Host machine {row['Unnamed: 0']} with {row['#Cores']} cores has {cpu_avg} average CPU utilisation.
-                    The core in machine {row['Unnamed: 0']} with the highest utilisation rate was averaging {highest_core_average}%, 
-                    and went above 80% core utilisation for a total of {core_over_80_seconds} seconds. 
-                    The percentage {core_division_result}% ({core_over_80_seconds} / 216000) tells you whether this is a high percentage of the time or not.
-                    The CPU in machine {row['Unnamed: 0']} which had the highest usage had an average of {cpu_over_80_seconds} seconds above 80% utilisation. 
-                    The percentage {cpu_division_result}% ({cpu_over_80_seconds} / 216000) tells you whether this is a high percentage of the time or not.
-                    The total memory capacity for machine {row['Unnamed: 0']} is {total_memory_capacity} GB, and its average memory utilisation is {row['avg']}. 
-                    The amount of time machine {row['Unnamed: 0']} went above 80% memory utilisation was {row['#oc > 80%']}.
-                    The network traffic statistics for the machine {row['Unnamed: 0']} is known: 
-                    The average MB sent per second was {MB_sent_per_sec}, the average MB received per second was {MB_received_per_sec},
-                    the total MB sent was {total_MB_sent}, the total MB received was {total_MB_received}. 
-                    The GPU utilisation rate for machine {row['Unnamed: 0']} had a minimum of {GPU_min_percentage}%, a maximum of {GPU_max_percentage}%, and an average of {GPU_average_percentage}%,
-                    the number of times machine  {row['Unnamed: 0']} went over a GPU utilisation rate of 80% was {GPU_over_80_occurrences}. 
-                    The GPU memory utilisation for machine {row['Unnamed: 0']} had a minimum of {GPU_mem_min}%, a maximum of {GPU_mem_max}%, and an average of {GPU_mem_avg}%, 
-                    and the number of times it went above an average of 80% was {GPU_mem_over_80_occurrences}."""
-    return sentence
+    sentence_with_tag = f"""<DURATION-SECONDS>216000</DURATION-SECONDS>.
+                    <MACHINE>{row['Unnamed: 0']}</MACHINE>.
+                    <CPU-AVERAGE-UTILISATION-PERCENTAGE>{cpu_avg}</CPU-AVGERAGE-UTILISATION-PERCENTAGE>.
+                    <CPU-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>{cpu_division_result}</CPU-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>.
+                    <CORE-AVERAGE-UTILISATION-PERCENTAGE>{highest_core_average}</CORE-AVERAGE-UTILISATION-PERCENTAGE>.
+                    <CORE-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>{core_division_result}</CORE-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>.
+                    <AVERAGE-MEMORY-UTILISATION>{row['avg']}</AVERAGE-MEMORY-UTILISATION>.
+                    <MEMORY-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>{row['#oc > 80%']}</MEMORY-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>.
+                    <NETWORK-TRAFFIC-TOTAL-MB-SENT>{total_MB_sent}</NETWORK-TRAFFIC-TOTAL-MB-SENT>.
+                    <NETWORK-TRAFFIC-TOTAL-MB-RECEIVED>{total_MB_received}</NETWORK-TRAFFIC-TOTAL-MB-RECEIVED>.
+                    <GPU-AVERAGE-UTILISATION-PERCENTAGE>{GPU_average_percentage}</GPU-AVERAGE-UTILISATION-PERCENTAGE>.
+                    <GPU-MEMORY-UTILISATION-AVERAGE-PERCENTAGE>{GPU_mem_avg}</GPU-MEMORY-UTILISATION-AVERAGE-PERCENTAGE>.
+                    <GPU-MEMORY-UTILISATION-MAXIMUM-PERCENTAGE>{GPU_mem_max}</GPU-MEMORY-UTILISATION-MAXIMUM-PERCENTAGE>."""
+    return sentence_with_tag
 
 # calling functions and generating global variable sentences for the data on carbon emissions and machine usage 
 machines_list = machine_usage_data.apply(generate_list_of_machines, axis=1)
@@ -251,17 +330,17 @@ sentences_for_all_machines_carbon = generate_sentences_for_all_machines_carbon_d
 
 sentences_for_all_machines_usage = machine_usage_data.apply(generate_sentence, axis=1)
 
+
 def benchmark_csv_yaml_data():
         # ================================================================================================================
         # CSV AND YAML DATA FOR LLAMA3 MODEL, SLIGHT TWEAK OF PROMPT BUT NOTHING RESEARCHED. Reason for this is that 
         # there may be some tweaking that can be done to the data initially to make it more readable for the model.
         # ================================================================================================================
-        # One method for including the csv and yaml data is to generate sentences from the data and then include these in the prompt, another is to use the raw data.
+        # One method for including the csv and yaml data is to generate tagged 'sentences' from the data, another is to use the raw data.
 
-  
         # generate all written context which can be added to prompt
         context = (sentences_for_all_machines_carbon, sentences_for_all_machines_usage)
-        
+
         template = """
             This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers 
             to the user's questions based on the context. The assistant should also indicate when the answer cannot be found in the context.
@@ -289,6 +368,7 @@ def benchmark_csv_yaml_data():
             # Print the response
             print(response)
 
+
 def prompt_engineered():
     template_input = input("""Choose the template for the prompt:
                             Template 1
@@ -309,13 +389,23 @@ def prompt_engineered():
 def rag():
     pass
 
-# Allowing the user to choose testing of the model with three optimisation levels.
+"""manually load data files"""
+emissions_reference_data, machine_usage_data = load_data_files(return_yaml=True)
+"convert yaml to dictionary"
+emissions_reference_data = extract_data_from_yaml(emissions_reference_data)
+import pprint
+pprint.pprint(emissions_reference_data)
+sys.exit()
+
+# Allowing the user to choose testing of the model with two optimisation methdos.
 while True:
     user_input = input("This is Llama3-Instruct-8B Model. Enter\n [1] Benchmark no data\n [2] Benchmark CSV & YAML data \n [3] Prompt Engineered \n [4] RAG\n\n")
     if user_input == '1':
+        # General behaviour of the model out of the box
         benchmark_no_data()
 
     elif user_input == '2':
+        # cleaned data with only relevant data, correct labelling, removed NaNs etc.
         benchmark_csv_yaml_data()
 
     elif user_input == '3':
