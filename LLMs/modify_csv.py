@@ -69,6 +69,19 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
 }
 
     df.replace(replace_dict, inplace=True)
+    print(df)
+    
+    df['machine-family'] = ''
+
+    # Iterate through the DataFrame and update the 'machine-family' column based on 'cores'
+    for index, row in df.iterrows():
+        if row['cores'] == 24:
+            df.at[index, 'machine-family'] = 'z2 mini'
+        elif row['cores'] == 28:
+            df.at[index, 'machine-family'] = 'G4 Z4R'
+    print(df)
+    sys.exit()
+
     
     # Remove the first 4 rows
     # df = df.iloc[4:].reset_index(drop=True)
@@ -297,7 +310,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration):
     ],
     'config': {
         'group-by': {
-            'group': ['instance-type']
+            'group': ['instance-type', 'cores']
     }},
     'defaults': [
     {'time-reserved': 157788000},  # need to check. the length of time the hardware is reserved for use by the software: BIG IMPACT ON RESULTS
