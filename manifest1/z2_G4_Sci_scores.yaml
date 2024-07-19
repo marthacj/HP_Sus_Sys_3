@@ -1,0 +1,314 @@
+name: sci-calculation
+description: Calculate operational carbon from CPU utilization using the Teads curve and then get operational and embodied carbon too. 
+            SCI is ISO-recognized standard for reporting carbon costs of running software, takes into account all the energy used by the application; below includes CPU energy and network energy.
+initialize:
+  outputs:
+    - yaml
+  plugins:
+    # cloud-instance-metadata:
+    #   method: CsvLookup
+    #   path: "builtins"
+    #   global-config:
+    #     filepath: https://some-file.xyz
+    #     query:
+    #       cloud-provider: cloud/provider
+    #       region: cloud/region
+    #       instance-type: cloud/instance-type
+    #       output: [["processor-name", "processor-model-id"], ["tdp","thermal-design-power"]]
+    group-by:
+      path: 'builtin'
+      method: GroupBy
+    # interpolate: # Interpolates the CPU utilization to get the scaling factor
+    #   method: Interpolation
+    #   path: 'builtin'
+    #   global-config:
+    #     method: linear
+    #     x: [0, 10, 50, 100]
+    #     y: [0.12, 0.32, 0.75, 1.02]
+    #     input-parameter: "cpu/utilization"
+    #     output-parameter: "cpu-factor"
+    # cpu-factor-to-wattage: # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
+    #   method: Multiply
+    #   path: 'builtin'
+    #   global-config:
+    #     input-parameters: ["cpu-factor", "cpu/thermal-design-power"]
+    #     output-parameter: "cpu-wattage"
+    gpu-utilisation-percentage-to-decimal:
+      method: Divide
+      path: 'builtin'
+      global-config:
+        numerator: "gpu/utilization"
+        denominator: 100
+        output: "gpu-utilization"
+    gpu-utilisation-to-wattage:
+      method: Multiply
+      path: 'builtin'
+      global-config:
+        input-parameters: ["gpu-utilization", "max-gpu-wattage"]
+        output-parameter: "gpu-wattage"
+    gpu-wattage-times-duration: # Wattage is power (energy over time) so convert to energy, by multiplying by duration in seconds to yield energy in joules. 
+      method: Multiply
+      path: 'builtin'
+      global-config:
+        input-parameters: ["gpu-wattage", "duration"]
+        output-parameter: "gpu-wattage-times-duration"
+    gpu-wattage-to-energy-kwh: # unit conversion to convert power in Watts to energy in kwH 
+      method: Divide
+      path: 'builtin'
+      global-config:
+        numerator: "gpu-wattage-times-duration"
+        denominator: 3600000 # 1000 watts * 3600 seconds = 3,600,000 joules
+        output: "gpu/energy" # raw energy in kWh for the entire chip
+    cpu-utilisation-percentage-to-decimal:
+      method: Divide
+      path: 'builtin'
+      global-config:
+        numerator: "cpu/utilization"
+        denominator: 100
+        output: "cpu-utilization"
+    cpu-utilisation-to-wattage:
+      method: Multiply
+      path: 'builtin'
+      global-config:
+        input-parameters: ["cpu-utilization", "cpu/thermal-design-power"]
+        output-parameter: "cpu-wattage"
+    # combine-gpu-and-cpu-wattage:
+    #   method: Sum
+    #   path: 'builtin'
+    #   global-config:
+    #     input-parameters: ["cpu-wattage", "gpu-wattage"]
+    #     output-parameter: "total-wattage"
+    cpu-wattage-times-duration: # Wattage is power (energy over time) so convert to energy, by multiplying by duration in seconds to yield energy in joules. 
+      method: Multiply
+      path: 'builtin'
+      global-config:
+        input-parameters: ["cpu-wattage", "duration"]
+        output-parameter: "cpu-wattage-times-duration"
+    cpu-wattage-to-energy-kwh: # unit conversion to convert power in Watts to energy in kwH 
+      method: Divide
+      path: 'builtin'
+      global-config:
+        numerator: "cpu-wattage-times-duration"
+        denominator: 3600000 # 1000 watts * 3600 seconds = 3,600,000 joules
+        output: "cpu-energy-raw" # raw energy in kWh for the entire chip
+    calculate-vcpu-ratio:
+      method: Divide
+      path: 'builtin'
+      global-config:
+        numerator: "vcpus-allocated"
+        denominator: "vcpus-total"
+        output: "vcpu-ratio"
+    correct-cpu-energy-for-vcpu-ratio: # Scales energy estimate by the ratio of VCPUs allocated to VCPUS available.
+      method: Divide
+      path: 'builtin'
+      global-config:
+        numerator: "cpu-energy-raw"
+        denominator: "vcpu-ratio"
+        output: "cpu/energy"
+    energy-sent: # Energy used to send data over the network
+      method: Multiply
+      path: 'builtin'
+      global-config:
+        input-parameters: ["total-MB-sent", "network-intensity"]
+        output-parameter: "energy-sent-joules"
+    energy-received: # Energy used to receive data over the network
+      method: Multiply
+      path: 'builtin'
+      global-config:
+        input-parameters: ["total-MB-received", "network-intensity"]
+        output-parameter: "energy-received-joules"
+    sum-network-energy-joules: # Sum of energy consumed during data ingress and egress
+      method: Sum
+      path: 'builtin'
+      global-config:
+        input-parameters: ["energy-sent-joules", "energy-received-joules"]
+        output-parameter: "total-energy-network-joules" 
+    total-network-energy-to-kwh: # Convert energy received to kWh
+      method: Divide
+      path: 'builtin'
+      global-config:
+        numerator: "total-energy-network-joules"
+        denominator: 3600000
+        output: "network/energy"
+    sum-energy-components: # Sum of CPU, GPU, and network energy for now
+      path: 'builtin'
+      method: Sum
+      global-config:
+        input-parameters: ["cpu/energy", "gpu/energy", "network/energy"]
+        output-parameter: "energy"
+    sci-embodied: # a model that calculates m from total embodied * timeshare(duration/lifespan) * resource share(resources-reserved/resources-total). 
+                  # Total embodied carbon for a unit of hardware is scaled down by the proportion of its expected lifespan used up by an application.
+      method: SciEmbodied
+      path: 'builtin'
+    operational-carbon:
+      path: 'builtin'
+      method: Multiply
+      global-config:
+        input-parameters: ["energy", "grid/carbon-intensity"]
+        output-parameter: "carbon-operational"
+    sum-carbon:
+      path: 'builtin'
+      method: Sum
+      global-config:
+        input-parameters: ["carbon-operational", "carbon-embodied"]
+        output-parameter: "carbon"
+    sci: # a model takes in total carbon in gCO2eq, functional-unit, and returns sci = carbon / functional-unit
+      path: 'builtin'
+      method: Sci
+      global-config:
+        functional-unit: machine
+tree:
+  children:
+    child:
+      pipeline:
+        - group-by
+        - tdp-finder
+        # - interpolate
+        # - cpu-factor-to-wattage
+        - gpu-utilisation-percentage-to-decimal
+        - gpu-utilisation-to-wattage
+        - gpu-wattage-times-duration
+        - gpu-wattage-to-energy-kwh
+        - cpu-utilisation-percentage-to-decimal
+        - cpu-utilisation-to-wattage
+        # - combine-gpu-and-cpu-wattage
+        - cpu-wattage-times-duration
+        - cpu-wattage-to-energy-kwh
+        - calculate-vcpu-ratio
+        - correct-cpu-energy-for-vcpu-ratio
+        - energy-sent
+        - energy-received
+        - sum-network-energy-joules
+        - total-network-energy-to-kwh
+        - sum-energy-components
+        - sci-embodied
+        - operational-carbon
+        - sum-carbon
+        - sci
+      config:
+        group-by:
+          group: ["instance-type", "machine-code"]
+      defaults:
+        # device/emissions-embodied: 1533.120 # gCO2eq (random for now) and is the sum of Life Cycle Assessment (LCA) emissions for the component
+        time-reserved: 157788000 # need to check. the length of time the hardware is reserved for use by the software: BIG IMPACT ON RESULTS
+        grid/carbon-intensity: 31 # this is the number for Equinix DC 2023, 35 is the general number for London (June 2024) 
+        device/expected-lifespan: 157788000 # 5 years in seconds == the length of time, in seconds, between a component's manufacture and its disposal
+        resources-reserved: vcpus-allocated 
+        resources-total: vcpus-total
+        machine: 1 # this is for 1 machine right now as have taken the average for machines rather than data for all machines: BIG IMPACT ON RERSULTS
+        duration: 216000
+        # cloud/region: uk-west # don't think i need this as not using cloud metadata?
+        network-intensity: 0.000124 # kWh/MB
+      inputs:
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 370.14 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 90 #Watts
+          vcpus-total: 24 #Total VCPUs for Intel Core i9-12900K (8 P-cores and 8 E-cores with Hyper-Threading)
+          vcpus-allocated: 24 # need to check: BIG IMPACT ON RESULTS
+          cpu/utilization: 0.0807847747114039
+          max-cpu-wattage: 280 # max Watts for zmini provided by HP
+          gpu/utilization: 1
+          max-gpu-wattage: 70
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 832.184668377887
+          total-MB-received: 1446.80422965691
+          instance-type: z2 mini
+          machine-code: ld71r18u44dws
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 306 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 165 #Watts
+          vcpus-total: 28
+          vcpus-allocated: 28 # need to check: BIG IMPACT ON RESULTS
+          cpu/utilization: 0.132013670350801
+          max-cpu-wattage: 1400 # max Watts for Z4R G4 provided by HP
+          gpu/utilization: 0.00512820512820513
+          max-gpu-wattage: 230
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 632.026554806753
+          total-MB-received: 1529.86247233888
+          instance-type: Z4R G4  
+          machine-code: ld71r16u15ws
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 370.14 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 90 #Watts
+          vcpus-total: 24 #Total VCPUs for Intel Core i9-12900K (8 P-cores and 8 E-cores with Hyper-Threading)
+          vcpus-allocated: 24 # need to check: BIG IMPACT ON RESULTS
+          cpu/utilization: 2.37467511109085
+          max-cpu-wattage: 280 # max Watts for zmini provided by HP
+          gpu/utilization: 4.12108773730133
+          max-gpu-wattage: 70
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 3757.86334155826
+          total-MB-received: 3770.94036641613
+          instance-type: z2 mini   
+          machine-code: ld71r18u44fws
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 306 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 165 #Watts
+          vcpus-total: 28
+          vcpus-allocated: 28 # need to check: BIG IMPACT ON RESULTS
+          cpu/utilization: 0.128619426852723
+          max-cpu-wattage: 1400 # max Watts for Z4R G4 provided by HP
+          gpu/utilization: 0.00461538461538461
+          max-gpu-wattage: 230
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 859.6917818946
+          total-MB-received: 2707.83639127929
+          instance-type: Z4R G4 
+          machine-code: ld71r16u13ws 
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 370.14 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 90 #Watts
+          vcpus-total: 24 #Total VCPUs for Intel Core i9-12900K (8 P-cores and 8 E-cores with Hyper-Threading)
+          vcpus-allocated: 24 # need to check: BIG IMPACT ON RESULTS
+          cpu/utilization: 0.445829334339081
+          max-cpu-wattage: 280 # max Watts for zmini provided by HP
+          gpu/utilization: 0.715238583889173
+          max-gpu-wattage: 70
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 803.944674633178
+          total-MB-received: 17003.1703111677
+          instance-type: z2 mini  
+          machine-code: ld71r18u44bws 
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 370.14 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 90 #Watts
+          vcpus-total: 24 #Total VCPUs for Intel Core i9-12900K (8 P-cores and 8 E-cores with Hyper-Threading)
+          vcpus-allocated: 24 # need to check: BIG IMPACT ON RESULTS
+          cpu/utilization: 0.0908625039434838
+          max-cpu-wattage: 280 # max Watts for zmini provided by HP
+          gpu/utilization: 0.00564102564102564
+          max-gpu-wattage: 70
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 1907.20354116066
+          total-MB-received: 2480.27632522669
+          instance-type: z2 mini   
+          machine-code: ld71r18u44cws
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 306 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 165 #Watts
+          vcpus-total: 28
+          vcpus-allocated: 28 # need to check: BIG IMPACT ON RESULTS
+          cpu/utilization: 0.135559799044188
+          max-cpu-wattage: 1400 # max Watts for Z4R G4 provided by HP
+          gpu/utilization: 0.00307692307692308
+          max-gpu-wattage: 230
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 1063.41255565625
+          total-MB-received: 2309.49060360773
+          instance-type: Z4R G4  
+          machine-code: ld71r16u14ws
+        - timestamp: 2024-07-14T00:00:00.000Z
+          device/emissions-embodied: 370.14 # gCO2eq = the sum of Life Cycle Assessment (LCA) emissions for the component
+          cpu/thermal-design-power: 90 #Watts
+          vcpus-total: 24 #Total VCPUs for Intel Core i9-12900K (8 P-cores and 8 E-cores with Hyper-Threading)
+          vcpus-allocated: 24 # need to check
+          cpu/utilization: 0.821035114414244
+          max-cpu-wattage: 280 # max Watts for zmini provided by HP
+          gpu/utilization: 1
+          max-gpu-wattage: 70
+          # network/energy: 0.000001 # this is random right now
+          total-MB-sent: 216.133438504292
+          total-MB-received: 360.314345591167
+          instance-type: z2 mini
+          machine-code: ld71r18u44ews
