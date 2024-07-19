@@ -173,6 +173,7 @@ tree:
         group-by:
           group:
           - instance-type
+          - cores
       defaults:
       - time-reserved: 157788000
       - grid/carbon-intensity: 31
