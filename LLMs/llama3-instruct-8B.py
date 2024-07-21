@@ -25,7 +25,8 @@ questions = ["Can you tell me how much carbon emission is produced by a 24 core 
                 "Which is the machine that uses GPU most intensively on average?", 
                 "Give me a summary of the compute usage for all the machines",
                 "Which of the machines do you recommend being moved to the next level up of compute power and why?",
-                "What is the average GPU usage for each machine?"]
+                "What is the average GPU usage for each machine?",
+                "What machine has the highest carbon emission value?"]
 
 few_shots = [ 
               ("How much is the carbon footprint of all the machines?", 
@@ -87,10 +88,10 @@ def extract_data_from_yaml(yaml_data: yaml) -> dict:
     return machine_list
 
 
-
-def rewrite_csv_input(cleaned_machine_usage_data: dict, num_machines: int = 8) -> dict:
+def rewrite_csv_input(cleaned_machine_usage_data: dict) -> dict:
     """rewrite the csv data to be more readable - with machine names instead of index"""
     machine_id_list = cleaned_machine_usage_data['machine-id-list']
+    num_machines = len(machine_id_list)
     cleaned_machine_usage_data.pop('machine-id-list')
     """remove any empty subdict"""
     for k, v in cleaned_machine_usage_data.copy().items():
@@ -183,7 +184,7 @@ def answer_question_with_data(question: int) -> str:
     response = send_prompt(prompt, interface="ollama")
     return response
 
-q = 3
+q = 7
 print(f"ANSWERING QUESTION {q}:")
 print(answer_question_with_data(q-1))
 sys.exit()
