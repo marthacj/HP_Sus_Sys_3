@@ -146,7 +146,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     print(df)
 
     print(df.columns)
-    
+    print(df['GPU_average'])
     templates = []
 
     # Iterate through each row in the DataFrame and process it
