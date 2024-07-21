@@ -1,8 +1,31 @@
 import pandas as pd
 import yaml
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
+
+def process_row(row, start_date, duration):
+    return {
+        'timestamp': start_date,
+        'device/emissions-embodied': row['device/emissions-embodied'],
+        'cpu/thermal-design-power': row['cpu/thermal-design-power'],
+        'vcpus-total': row['cores'],
+        'vcpus-allocated': row['cores'],
+        'cpu/utilization': float(row['CPU_average']),
+        'max-cpu-wattage': row['max-cpu-wattage'],
+        'gpu/utilization': float(row['GPU_average']),
+        'max-gpu-wattage': row['max-gpu-wattage'],
+        'total-MB-sent': float(row['Total_MB_Sent']),
+        'total-MB-received': float(row['Total_MB_Received']),
+        'instance-type': row['machine-family'],
+        'machine-code': row['Host Name'],
+        'time-reserved': int(row['time-reserved']),
+        'grid/carbon-intensity': int(row['grid/carbon-intensity']),
+        'device/expected-lifespan': int(row['device/expected-lifespan']),
+        'duration': int(duration),
+        'network-intensity': float(row['network-intensity']),
+        'machine': int(1)
+    }
 
 def process_csv(original_CSV_filepath, modified_CSV_filepath):
     # Read the CSV file
@@ -33,6 +56,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
 
                     # Parse the date strings into datetime objects
                     start_date = datetime.strptime(start_date_str, date_format)
+                    start_date = start_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
                     end_date = datetime.strptime(end_date_str, date_format)
 
                     # Print the datetime objects
@@ -55,41 +79,93 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             start_row = i
             break
     
-    # Load the CSV data into a DataFrame, skipping the metadata rows
-    df = pd.read_csv(original_CSV_filepath, skiprows=start_row)
-    
-    # Rename the 'Host Name' column to 'host'
-    df.rename(columns={'Host Name': 'host'}, inplace=True)
-    replace_dict = {
-    '#Cores': 'cores',
-    'CPU\nHighest\navg': 'CPU_average',
-    'GPU\navg': 'GPU_average',
-    'Total MB\nSent': 'Total_MB_Sent',
-    'Total MB\nReceived': 'Total_MB_Received'
-}
+        # Load the CSV data including the headers rows
+    df = pd.read_csv(original_CSV_filepath, header=None, skiprows=start_row)
 
-    df.replace(replace_dict, inplace=True)
+    # Extract the first row as headers for the first column
+    first_column_header = df.iloc[0, 0]
+
+    # Extract the second row as headers for columns 2 onwards
+    remaining_headers = df.iloc[1]
+
+    # Combine headers
+    headers = [first_column_header] + remaining_headers[1:].tolist()
+
+    # Assign the combined headers to the DataFrame
+    df.columns = headers
+
+    # Drop the first two rows which were used for headers
+    df = df.drop([0, 1]).reset_index(drop=True)
+
+    # Optionally: Rename specific columns if needed
+    replace_dict = {
+        '#Cores': 'cores',
+        'CPU\nHighest\navg': 'CPU_average',
+        'GPU\navg': 'GPU_average',
+        'Total MB\nSent': 'Total_MB_Sent',
+        'Total MB\nReceived': 'Total_MB_Received'
+    }
+
+    # Replace column names using the replace_dict
+    df.rename(columns=replace_dict, inplace=True)
+
     print(df)
     
     df['machine-family'] = ''
+    df['max-cpu-wattage'] = ''
+    df['max-gpu-wattage'] = ''
+    df['cpu/thermal-design-power'] = ''
+    df['device/emissions-embodied'] = ''
+    df['time-reserved'] = '157788000'
+    df['grid/carbon-intensity'] = 31
+    df['device/expected-lifespan'] = 157788000
+    df['time-reserved'] = 157788000
+    df['network-intensity'] = 0.000124
 
     # Iterate through the DataFrame and update the 'machine-family' column based on 'cores'
     for index, row in df.iterrows():
-        if row['cores'] == 24:
+        if row['cores'] == '24':
+            df.at[index, 'cores'] = 24
             df.at[index, 'machine-family'] = 'z2 mini'
-        elif row['cores'] == 28:
-            df.at[index, 'machine-family'] = 'G4 Z4R'
-    print(df)
-    sys.exit()
+            df.at[index, 'max-cpu-wattage'] = 280
+            df.at[index, 'max-gpu-wattage'] = 70
+            df.at[index, 'cpu/thermal-design-power'] = 90
+            df.at[index, 'device/emissions-embodied'] = 370.14
+        elif row['cores'] == '28':
+            df.at[index, 'cores'] = 28
+            df.at[index, 'machine-family'] = 'Z4R G4'
+            df.at[index, 'max-cpu-wattage'] = 1400
+            df.at[index, 'max-gpu-wattage'] = 230
+            df.at[index, 'cpu/thermal-design-power'] = 165
+            df.at[index, 'device/emissions-embodied'] = 306
+        if row['GPU_average'] == '0':
+            df.at[index, 'GPU_average'] = 1
+            
+         
 
+    print(df)
+
+    print(df.columns)
     
-    # Remove the first 4 rows
-    # df = df.iloc[4:].reset_index(drop=True)
+    templates = []
+
+    # Iterate through each row in the DataFrame and process it
+    for _, row in df.iterrows():
+        if pd.isna(row['Host Name']) or row['Host Name'] == '':
+            continue
+        template = process_row(row, start_date, duration)
+        templates.append(template)
+
+    print(templates)
     
     # Output the modified DataFrame to a new CSV file
     df.to_csv(modified_CSV_filepath, index=False)
     
-    return modified_CSV_filepath, int(duration), start_date, end_date
+    return modified_CSV_filepath, int(duration), start_date, end_date, templates
+
+
+
+
 
 
 # Define the input and output file paths
@@ -98,28 +174,28 @@ modified_CSV_filepath = r'C:\Users\martha.calder-jones\OneDrive - University Col
 manifest_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\NEW_z2_G4_Sci.yaml'
 
 
-modified_csv_path, duration, start_date, end_date = process_csv(original_CSV_filepath, modified_CSV_filepath)
+modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
 
-def generate_manifest(manifest_filepath, modified_CSV_filepath, duration):
+def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templates):
     # Define the manifest structure
     manifest = {
         'name': 'sci-calculation',
-        'description': """Calculate operational carbon from CPU utilization using the Teads curve and then get operational and embodied carbon too. 
+        'description': """Calculate operational carbon from CPU utilization, GPU utilization, and network usage.
             SCI is ISO-recognized standard for reporting carbon costs of running software, takes into account all the energy used by the application; below includes CPU energy and network energy.""",
         'initialize': {
             'outputs': ['yaml'],
             'plugins': {
-                'tdp-finder': {
-                    'method': 'CSVLookup',
-                    'path': 'builtin',
-                    'global-config': {
-                        'filepath': modified_CSV_filepath,
-                        'query': {
-                            'host': 'instance-type'
-                        },
-                        'output': [['cores', 'num-cores'], ['CPU_average', 'cpu/utilization'], ['GPU_average','gpu/utilization'], ['Total_MB_Sent', 'total-MB-sent'], ['Total_MB_Received', 'total-MB-received']]
-                    }
-                },
+                # 'tdp-finder': {
+                #     'method': 'CSVLookup',
+                #     'path': 'builtin',
+                #     'global-config': {
+                #         'filepath': modified_CSV_filepath,
+                #         'query': {
+                #             'host': 'instance-type'
+                #         },
+                #         'output': [['cores', 'num-cores'], ['CPU_average', 'cpu/utilization'], ['GPU_average','gpu/utilization'], ['Total_MB_Sent', 'total-MB-sent'], ['Total_MB_Received', 'total-MB-received'], ['machine-family', 'machine-family']]
+                #     }
+                # },
                 'group-by': {
                     'path': 'builtin',
                     'method': 'GroupBy',
@@ -284,10 +360,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration):
             'children': {
                 'child': {
                     'pipeline': [
-        'tdp-finder',
         'group-by',
-        # - interpolate
-        # - cpu-factor-to-wattage
         'gpu-utilisation-percentage-to-decimal',
         'gpu-utilisation-to-wattage',
         'gpu-wattage-times-duration',
@@ -310,48 +383,22 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration):
     ],
     'config': {
         'group-by': {
-            'group': ['instance-type', 'cores']
+            'group': ['instance-type', 'machine-code']
     }},
-    'defaults': [
-    {'time-reserved': 157788000},  # need to check. the length of time the hardware is reserved for use by the software: BIG IMPACT ON RESULTS
-    {'grid/carbon-intensity': 31},  # this is the number for Equinix DC 2023, 35 is the general number for London (June 2024)
-    {'device/expected-lifespan': 157788000},  # 5 years in seconds == the length of time, in seconds, between a component's manufacture and its disposal
-    {'resources-reserved': 'vcpus-allocated'},
-    {'resources-total': 'vcpus-total'},
-    {'machine': 1},  # this is for 1 machine right now as have taken the average for machines rather than data for all machines: BIG IMPACT ON RESULTS
-    {'duration': duration},
-    {'network-intensity': 0.000124},  # kWh/MB
-    {'timestamp': start_date}
-    ]
-},
-                    'inputs': [
-                        {'instance-type': 'ld71r18u44dws'},
-                        # {'instance-type': 'ld71r16u15ws'},
-                        # {'instance-type': 'ld71r18u44fws'},
-                        # {'instance-type': 'ld71r16u13ws'},
-                        # {'instance-type': 'ld71r18u44bws'},
-                        # {'instance-type': 'ld71r18u44cws'},
-                        # {'instance-type': 'ld71r16u14ws'},
-                        # {'instance-type': 'ld71r18u44ews'},
-                        
-                    ]
-                }
+
+                    'inputs': templates
+                }},
             }
         }
     
-
+    print(manifest)
     # Save the manifest to a YAML file
-    with open(manifest_filepath, 'w') as file:
-        yaml.dump(manifest, file, default_flow_style=False)
+    with open(manifest_filepath, 'w', encoding='utf-8') as file:
+        yaml.dump(manifest, file, default_flow_style=False, sort_keys=False)
 
-
-
-
-# # Output the modified DataFrame to a new CSV file
-# df.to_csv(modified_CSV_filepath, index=False)
 
 # Generate the manifest file with the extracted duration value
-generate_manifest(manifest_filepath, modified_csv_path, duration)
+generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
 
 print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
 print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
