@@ -64,6 +64,7 @@ def extract_data_from_yaml(yaml_data: yaml) -> dict:
     machine_list = []
     """machine_dict = {}"""
     lowest_children_level = yaml_data['tree']['children']['child']['children']['z2 mini']['children']
+    lowest_children_level.update(yaml_data['tree']['children']['child']['children']['Z4R G4']['children'])
     for machine in lowest_children_level:
         for child in lowest_children_level[machine]['outputs']:
             """convert child to a dictionary"""
@@ -84,6 +85,8 @@ def extract_data_from_yaml(yaml_data: yaml) -> dict:
             """machine_dict['machine-id-'+machine] = child"""
             machine_list.append(child)
     return machine_list
+
+
 
 def rewrite_csv_input(cleaned_machine_usage_data: dict, num_machines: int = 8) -> dict:
     """rewrite the csv data to be more readable - with machine names instead of index"""
@@ -107,14 +110,15 @@ def rewrite_csv_input(cleaned_machine_usage_data: dict, num_machines: int = 8) -
 
 def load_data_files(return_yaml: bool = False) -> tuple:
     # Load the YAML file which contains the carbon emissions data for the machines
-    yaml_file = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest\outputs\z2_G4_Sci_Scores_Output.yaml'
+    yaml_file = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\outputs\NEW_z2_G4_Sci_Scores_Output.yaml'
+    # yaml_file = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\outputs\z2_G4_Sci_Scores_Output.yaml'
     # Load yaml file
     with open(yaml_file, 'r') as f:
         """this data is what is put in <BACKGROUND> tag in the prompt"""
         emissions_reference_data = yaml.load(f, Loader=yaml.SafeLoader)
         emissions_reference_data_str = yaml.dump(emissions_reference_data)
         # split by first occureance of word defaults and take [1]
-        emissions_reference_data_str = emissions_reference_data_str.split('defaults', 1)[1]
+        emissions_reference_data_str = emissions_reference_data_str.split('pipeline', 1)[1]
         print(emissions_reference_data_str)
         
     # Load the Excel file of actual cpu usage (cpu / gpu etc average utilisation / data transfer over the course of X time). File here is stored in codebase 
