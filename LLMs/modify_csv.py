@@ -4,6 +4,13 @@ import sys
 from datetime import datetime, timezone
 
 
+
+# Define the input and output file paths
+original_CSV_filepath = r'data\CSV1038-0610-0614-day.csv'
+modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
+manifest_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\NEW_z2_G4_Sci.yaml'
+
+
 def process_row(row, start_date, duration):
     return {
         'timestamp': start_date,
@@ -164,16 +171,6 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     return modified_CSV_filepath, int(duration), start_date, end_date, templates
 
 
-
-
-
-
-# Define the input and output file paths
-original_CSV_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\data\CSV1038-0610-0614-day.csv'
-modified_CSV_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\data\modified_CSV1038-0610-0614-day.csv'
-manifest_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\NEW_z2_G4_Sci.yaml'
-
-
 modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
 
 def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templates):
@@ -200,6 +197,21 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'path': 'builtin',
                     'method': 'GroupBy',
                 },
+                # 'interpolate': {
+                #   'method': 'Interpolation',
+                #   'path': 'builtin',
+                #   'global-config': {
+                #       'method': {linear,
+                #       'x': { [0, 10, 50, 100] },
+                #       'y': { [0.12, 0.32, 0.75, 1.02] },
+                #     input-parameter: "cpu/utilization"
+                #     output-parameter: "cpu-factor"
+                # cpu-factor-to-wattage: # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
+                #   method: Multiply
+                #   path: 'builtin'
+                #   global-config:
+                #     input-parameters: ["cpu-factor", "cpu/thermal-design-power"]
+                #     output-parameter: "cpu-wattage"
                 'gpu-utilisation-percentage-to-decimal': {
                 'method': 'Divide',
                 'path': 'builtin',
@@ -383,7 +395,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
     ],
     'config': {
         'group-by': {
-            'group': ['instance-type', 'machine-code']
+            'group': ['machine-code']
     }},
 
                     'inputs': templates

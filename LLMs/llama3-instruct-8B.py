@@ -4,6 +4,7 @@ import ollama
 import pandas as pd
 import yaml
 import sys
+from collections import OrderedDict
 # from langchain_core.prompts import PromptTemplate
 
 
@@ -51,7 +52,7 @@ def send_prompt(prompt: str, interface: str = "ollama",
     return response
 
 
-def extract_data_from_yaml(yaml_data: yaml) -> dict:
+def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
     """
     yaml structure is:
     tree:
@@ -62,11 +63,16 @@ def extract_data_from_yaml(yaml_data: yaml) -> dict:
                         children:
     """
     """iterate through the bottom children and extract the data"""
-    machine_list = []
+    machine_emissions_list = []
+    machine_id_dict = {}
     """machine_dict = {}"""
-    lowest_children_level = yaml_data['tree']['children']['child']['children']['z2 mini']['children']
-    lowest_children_level.update(yaml_data['tree']['children']['child']['children']['Z4R G4']['children'])
-    for machine in lowest_children_level:
+    lowest_children_level = yaml_data['tree']['children']['child']['children']
+    lowest_children_level.update(yaml_data['tree']['children']['child']['children'])
+    """dump the yaml to file for debug"""
+    with open('yaml_dump.txt', 'w') as f:
+        yaml.dump(lowest_children_level, f)
+
+    for i, machine in enumerate(lowest_children_level):
         for child in lowest_children_level[machine]['outputs']:
             """convert child to a dictionary"""
             child = dict(child)
@@ -79,18 +85,21 @@ def extract_data_from_yaml(yaml_data: yaml) -> dict:
             """round sci to 6 dp"""
             child['sci'] = round(child['sci'], 6)
             """letters 7 to 10 are unique to each machine"""
-            child['machine-id'] = machine[6:]
+            child['machine-id'] = str(i)
+            machine_id_dict[machine[6:]] = str(i)
             """replace instance-type with machine-family, and sci with machine-carbon-emission-value"""
             child['machine-family'] = child.pop('instance-type')
             child['machine-carbon-emission-value'] = child.pop('sci')
             """machine_dict['machine-id-'+machine] = child"""
-            machine_list.append(child)
-    return machine_list
+            machine_emissions_list.append(child)
+        
+    return machine_emissions_list, machine_id_dict
 
 
 def rewrite_csv_input(cleaned_machine_usage_data: dict) -> dict:
     """rewrite the csv data to be more readable - with machine names instead of index"""
     machine_id_list = cleaned_machine_usage_data['machine-id-list']
+    print("machine_id_list:", machine_id_list)
     num_machines = len(machine_id_list)
     cleaned_machine_usage_data.pop('machine-id-list')
     """remove any empty subdict"""
@@ -120,7 +129,7 @@ def load_data_files(return_yaml: bool = False) -> tuple:
         emissions_reference_data_str = yaml.dump(emissions_reference_data)
         # split by first occureance of word defaults and take [1]
         emissions_reference_data_str = emissions_reference_data_str.split('pipeline', 1)[1]
-        print(emissions_reference_data_str)
+        
         
     # Load the Excel file of actual cpu usage (cpu / gpu etc average utilisation / data transfer over the course of X time). File here is stored in codebase 
     file_path = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\data\1038-0610-0614-day.xlsx'
@@ -133,25 +142,38 @@ def load_data_files(return_yaml: bool = False) -> tuple:
         exit()
     # convert to dictionary
     machine_usage_data = machine_usage_data.to_dict()
+    
     """remove all keys and values from machine_usage_data dict where the value is nan"""
     cleaned_machine_usage_data = {}
     for mud_k, mud_v in machine_usage_data.items():
         cleaned_machine_usage_data[mud_k] = {k: v for k, v in mud_v.items() if str(v) != 'nan'}
+        """sort by key"""
+        cleaned_machine_usage_data[mud_k] = OrderedDict(sorted(cleaned_machine_usage_data[mud_k].items()))
     """machine list key is 'Unnamed: 0'"""
     cleaned_machine_usage_data['machine-id-list'] = cleaned_machine_usage_data.pop('Unnamed: 0')
+    """select only chars 7 onwards for machine id list value using dict comprehension"""
+    cleaned_machine_usage_data['machine-id-list'] = {k: v[6:] for k, v in cleaned_machine_usage_data['machine-id-list'].items()}
+    
+
     """go through all levels of the dict and if an element is numerical round it to 6 dp"""
     for mud_k, mud_v in cleaned_machine_usage_data.items():
         for k, v in mud_v.items():
             if isinstance(v, float):
                 cleaned_machine_usage_data[mud_k][k] = round(v, 6)
-    """move machine neames into each dict"""
-    
-    cleaned_machine_usage_data = rewrite_csv_input(cleaned_machine_usage_data)
+    """remove any empty subdict"""
+    for k, v in cleaned_machine_usage_data.copy().items():
+        if not v:
+            cleaned_machine_usage_data.pop(k)
+    """move machine names into each dict"""
+    """    cleaned_machine_usage_data = rewrite_csv_input(cleaned_machine_usage_data)               
+    """  
     machine_usage_data = str(cleaned_machine_usage_data)
     """replace all ravw string \n with a space"""
     machine_usage_data = machine_usage_data.replace(r'\n', ' ')
     """replace 'avg' with 'average usage'"""
     machine_usage_data = machine_usage_data.replace('avg', 'average usage')
+    
+
   
     if return_yaml:
         return emissions_reference_data, machine_usage_data
@@ -160,8 +182,24 @@ def load_data_files(return_yaml: bool = False) -> tuple:
 
 def answer_question_with_data(question: int) -> str:
     emissions_reference_data, machine_usage_data = load_data_files(return_yaml=True)
-    emissions_reference_data = extract_data_from_yaml(emissions_reference_data)
+    emissions_reference_data, machine_id_dict = extract_data_from_yaml(emissions_reference_data)
+
     emissions_reference_data = str(emissions_reference_data)
+
+    for k in machine_id_dict:
+        print(k, machine_id_dict[k])
+        machine_usage_data = machine_usage_data.replace(k, machine_id_dict[k])
+    print("machine_usage_data:", machine_usage_data)
+    input("Press Enter to continue...")
+
+
+
+    print("emissions_reference_data:", emissions_reference_data)
+    input("Press Enter to continue...")
+    print("machine_usage_data:", machine_usage_data)
+    print("machine_id_dict:", machine_id_dict)
+    input("Press Enter to continue...")
+
     
     prompt = f"""Here is some background information on how processer usage and carbon emissions are related:
                 <BACKGROUND> {emissions_reference_data} </BACKGROUND>
@@ -184,7 +222,7 @@ def answer_question_with_data(question: int) -> str:
     response = send_prompt(prompt, interface="ollama")
     return response
 
-q = 7
+q = 3
 print(f"ANSWERING QUESTION {q}:")
 print(answer_question_with_data(q-1))
 sys.exit()
