@@ -10,7 +10,13 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import logging
+from langchain_core.tools import tool
+from langchain import hub
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_openai import ChatOpenAI
+from ollama import OllamaModel, OllamaAgent, OllamaAgentExecutor
 
+KEY = """sk-proj-oAyTGcVCbFbpWLFhHsPST3BlbkFJy11eIi8CryUucNeXqvZg"""
 # from langchain_core.prompts import PromptTemplate
 
 
@@ -67,6 +73,10 @@ def read_sentences_from_file(file_path):
     sentences = [sentence.strip() for sentence in sentences]
     return sentences
 
+"""agent experiments"""
+prompt = hub.pull("hwchase17/openai-tools-agent")
+sys.exit()
+
 try:
     # Load the pre-trained BERT-based model
     model = SentenceTransformer('bert-base-nli-mean-tokens')
@@ -76,23 +86,39 @@ try:
 
     # Read sentences from the file
     sentences = read_sentences_from_file(file_path)
-
-    # Encode sentences to get their embeddings
-    embeddings = model.encode(sentences)
+    import os, pickle
+    """if embeddings.pickle exists, load the embeddings from file  and skip the encoding step"""
+    if os.path.exists('embeddings.pickle'):   
+        # Load the embeddings from file
+        with open('embeddings.pickle', 'rb') as file:
+            embeddings = pickle.load(file)
+    else:
+        # Encode sentences to get their embeddings
+        embeddings = model.encode(sentences)
+        
+        """save the encodings to pickle file"""
+        with open('embeddings.pickle', 'wb') as file:
+            pickle.dump(embeddings, file)
    # Convert embeddings to a numpy array
     embeddings = np.array(embeddings)
 
     # Create a FAISS index
-    d = embeddings.shape[1]  # Dimension of embeddings
+    d = embeddings.shape[1]  # Dimension of embeddings (768)
     index = faiss.IndexFlatL2(d)  # Using L2 distance (Euclidean distance)
     
-    # Add embeddings to the index
-    index.add(embeddings)
-    print(f"Number of sentences indexed: {index.ntotal}")
+    """if faiss_index.bin exists, load the index from file and skip the add step"""
+    if os.path.exists('faiss_index.bin'):
+        index = faiss.read_index('faiss_index.bin')
+        print("FAISS index loaded from 'faiss_index.bin'")
+    else:
+        # Add embeddings to the index
+        index.add(embeddings)
+        print(f"Number of sentences indexed: {index.ntotal}")
 
-    # Save the FAISS index to disk
-    faiss.write_index(index, 'faiss_index.bin')
-    print("FAISS index saved to 'faiss_index.bin'")
+
+        # Save the FAISS index to disk
+        faiss.write_index(index, 'faiss_index.bin')
+        print("FAISS index saved to 'faiss_index.bin'")
     # Print the embeddings
     # for sentence, embedding in zip(sentences, embeddings):
     #     print(f"Sentence: {sentence}")
@@ -100,7 +126,28 @@ try:
 except Exception as e:
     logging.error(f"An error occurred: {e}")
 
+q = questions[0]
+q_embedding = model.encode(q)
+print(q_embedding.shape)
+q_embedding = q_embedding.reshape(1, -1)
+""" want to reduce out prompt context by 75%"""
+top_k = int(0.25 * len(sentences))
+distances, indices = index.search(q_embedding, top_k)
+print("Question:", q    )
+"""for ind, distance in zip(indices[0], distances[0]):
+    print(f"Distance: {distance}")
+    print(f"Sentence: {sentences[ind]}\n")"""
+prompt = """Here is your context for a question I will ask you:\n"""
+for ind, distance in zip(indices[0], distances[0]):
+    prompt += f"{sentences[ind]}\n"
+prompt += f"Here is a new question for you to answer:\n{q}"
+print("prompt:", prompt)
+
+response = send_prompt(prompt, interface="ollama")
+print(response)
+
 sys.exit()
+
 # ============================================================================================
 
 def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:

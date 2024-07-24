@@ -31,6 +31,7 @@ def csv_to_json(filename, as_json=True):
 def flatten(data_dict):
     flat_dict = {}
     for machine_key, machine_data in data_dict.items():
+        machine_key = machine_key[6:]
         for top_level_key, top_level_data in machine_data.items():
             if isinstance(top_level_data, dict):
                 for lower_level_key, lower_level_data in top_level_data.items():
