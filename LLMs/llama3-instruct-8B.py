@@ -16,7 +16,7 @@ from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_openai import ChatOpenAI
 from ollama import OllamaModel, OllamaAgent, OllamaAgentExecutor
 
-KEY = """sk-proj-oAyTGcVCbFbpWLFhHsPST3BlbkFJy11eIi8CryUucNeXqvZg"""
+
 # from langchain_core.prompts import PromptTemplate
 
 
