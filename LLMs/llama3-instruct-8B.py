@@ -5,6 +5,12 @@ import pandas as pd
 import yaml
 import sys
 from collections import OrderedDict
+# from data.csv_to_json import csv_to_json
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+import logging
+
 # from langchain_core.prompts import PromptTemplate
 
 
@@ -51,6 +57,51 @@ def send_prompt(prompt: str, interface: str = "ollama",
         response = response['choices'][0]['text']
     return response
 
+# ============================================================================================
+"""code for rag experiment"""
+# Function to read sentences from a text file
+def read_sentences_from_file(file_path):
+    with open(file_path, 'r') as file:
+        sentences = file.readlines()
+    # Strip any surrounding whitespace from each sentence
+    sentences = [sentence.strip() for sentence in sentences]
+    return sentences
+
+try:
+    # Load the pre-trained BERT-based model
+    model = SentenceTransformer('bert-base-nli-mean-tokens')
+
+    # Path to your data.txt file
+    file_path = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\data.txt'
+
+    # Read sentences from the file
+    sentences = read_sentences_from_file(file_path)
+
+    # Encode sentences to get their embeddings
+    embeddings = model.encode(sentences)
+   # Convert embeddings to a numpy array
+    embeddings = np.array(embeddings)
+
+    # Create a FAISS index
+    d = embeddings.shape[1]  # Dimension of embeddings
+    index = faiss.IndexFlatL2(d)  # Using L2 distance (Euclidean distance)
+    
+    # Add embeddings to the index
+    index.add(embeddings)
+    print(f"Number of sentences indexed: {index.ntotal}")
+
+    # Save the FAISS index to disk
+    faiss.write_index(index, 'faiss_index.bin')
+    print("FAISS index saved to 'faiss_index.bin'")
+    # Print the embeddings
+    # for sentence, embedding in zip(sentences, embeddings):
+    #     print(f"Sentence: {sentence}")
+    #     print(f"Embedding: {embedding}\n")
+except Exception as e:
+    logging.error(f"An error occurred: {e}")
+
+sys.exit()
+# ============================================================================================
 
 def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
     """
@@ -59,8 +110,6 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
         children:
             child:
                 children:
-                    z2 mini:
-                        children:
     """
     """iterate through the bottom children and extract the data"""
     machine_emissions_list = []
@@ -117,6 +166,26 @@ def rewrite_csv_input(cleaned_machine_usage_data: dict) -> dict:
     return new_machine_usage_data
      
         
+def flip_data_dict(data_dict):
+    # Initialize an empty dictionary to hold the flipped data
+    flipped_data = {}
+
+    # Get the length of the data by checking the length of the first nested OrderedDict
+    data_length = len(next(iter(data_dict.values())))
+
+    # Iterate over the indices of the data points
+    for idx in range(data_length):
+        flipped_data[idx] = {}
+        for category, values in data_dict.items():
+            # Some values might be single keys instead of OrderedDicts
+            if isinstance(values, OrderedDict):
+                if idx in values:
+                    flipped_data[idx][category] = values[idx]
+            else:
+                if idx == 0:
+                    flipped_data[idx][category] = values
+
+    return flipped_data
 
 def load_data_files(return_yaml: bool = False) -> tuple:
     # Load the YAML file which contains the carbon emissions data for the machines
@@ -168,6 +237,10 @@ def load_data_files(return_yaml: bool = False) -> tuple:
     """    cleaned_machine_usage_data = rewrite_csv_input(cleaned_machine_usage_data)               
     """  
     machine_usage_data = str(cleaned_machine_usage_data)
+    # machine_usage_data = flip_data_dict(cleaned_machine_usage_data)
+  
+
+    # machine_usage_data = str(machine_usage_data)
     """replace all ravw string \n with a space"""
     machine_usage_data = machine_usage_data.replace(r'\n', ' ')
     """replace 'avg' with 'average usage'"""
@@ -201,7 +274,7 @@ def answer_question_with_data(question: int) -> str:
     input("Press Enter to continue...")
 
     
-    prompt = f"""Here is some background information on how processer usage and carbon emissions are related:
+    prompt = f"""Here is some background information on machines and their carbon emissions:
                 <BACKGROUND> {emissions_reference_data} </BACKGROUND>
                 Here are details on usage for a number of machines:
                 <USAGE DETAILS> {machine_usage_data} </USAGE DETAILS>

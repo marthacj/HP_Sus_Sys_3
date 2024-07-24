@@ -8,6 +8,31 @@ initialize:
     group-by:
       path: builtin
       method: GroupBy
+    interpolate:
+      path: builtin
+      method: Interpolation
+      global-config:
+        method: linear
+        x:
+          - 0
+          - 10
+          - 50
+          - 100
+        'y':
+          - 0.12
+          - 0.32
+          - 0.75
+          - 1.02
+        input-parameter: cpu/utilization
+        output-parameter: cpu-factor
+    cpu-factor-to-wattage:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - cpu-factor
+          - cpu/thermal-design-power
+        output-parameter: cpu-wattage
     gpu-utilisation-percentage-to-decimal:
       path: builtin
       method: Divide
@@ -161,7 +186,7 @@ execution:
     os: "Microsoft Windows 10 Enterprise\r"
     os-version: 10.0.19045 N/A Build 19045
     node-version: 20.14.0
-    date-time: 2024-07-22T15:09:15.408Z (UTC)
+    date-time: 2024-07-23T16:55:24.301Z (UTC)
     dependencies: []
   status: success
 tree:

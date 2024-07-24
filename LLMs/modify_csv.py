@@ -129,6 +129,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     df['time-reserved'] = 157788000
     df['network-intensity'] = 0.000124
 
+
     # Iterate through the DataFrame and update the 'machine-family' column based on 'cores'
     for index, row in df.iterrows():
         if row['cores'] == '24':
@@ -197,21 +198,23 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'path': 'builtin',
                     'method': 'GroupBy',
                 },
-                # 'interpolate': {
-                #   'method': 'Interpolation',
-                #   'path': 'builtin',
-                #   'global-config': {
-                #       'method': {linear,
-                #       'x': { [0, 10, 50, 100] },
-                #       'y': { [0.12, 0.32, 0.75, 1.02] },
-                #     input-parameter: "cpu/utilization"
-                #     output-parameter: "cpu-factor"
-                # cpu-factor-to-wattage: # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
-                #   method: Multiply
-                #   path: 'builtin'
-                #   global-config:
-                #     input-parameters: ["cpu-factor", "cpu/thermal-design-power"]
-                #     output-parameter: "cpu-wattage"
+                'interpolate': {
+                  'method': 'Interpolation',
+                  'path': 'builtin',
+                  'global-config': {
+                      'method': 'linear',
+                      'x':  [0, 10, 50, 100] ,
+                      'y':  [0.12, 0.32, 0.75, 1.02] ,
+                    'input-parameter': "cpu/utilization",
+                    'output-parameter': "cpu-factor" }
+                },
+                'cpu-factor-to-wattage': { # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
+                  'method': 'Multiply',
+                  'path': 'builtin',
+                  'global-config': {
+                    'input-parameters':  ["cpu-factor", "cpu/thermal-design-power"] ,
+                    'output-parameter': "cpu-wattage"}
+                },
                 'gpu-utilisation-percentage-to-decimal': {
                 'method': 'Divide',
                 'path': 'builtin',
@@ -373,6 +376,8 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                 'child': {
                     'pipeline': [
         'group-by',
+        # 'interpolate',
+        # 'cpu-factor-to-wattage',
         'gpu-utilisation-percentage-to-decimal',
         'gpu-utilisation-to-wattage',
         'gpu-wattage-times-duration',
