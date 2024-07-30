@@ -3,12 +3,16 @@ import yaml
 import sys
 from datetime import datetime, timezone
 
+def convert_xlsx_to_csv(excel_file):
+    df = pd.read_excel(excel_file, sheet_name='WS-Data')
 
+    # Define the output CSV file path
+    csv_file = r'data\1038-0610-0614-evening.csv'
 
-# Define the input and output file paths
-original_CSV_filepath = r'data\CSV1038-0610-0614-day.csv'
-modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
-manifest_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\NEW_z2_G4_Sci.yaml'
+    # Write the DataFrame to a CSV file
+    df.to_csv(csv_file, index=False)
+
+    return csv_file
 
 
 def process_row(row, start_date, duration):
@@ -38,7 +42,6 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     # Read the CSV file
     with open(original_CSV_filepath, 'r') as file:
         lines = file.readlines()
-    
     # Extract the 'duration' value from the metadata
     duration = None
     for line in lines:
@@ -171,8 +174,6 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     
     return modified_CSV_filepath, int(duration), start_date, end_date, templates
 
-
-modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
 
 def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templates):
     # Define the manifest structure
@@ -414,9 +415,18 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
         yaml.dump(manifest, file, default_flow_style=False, sort_keys=False)
 
 
-# Generate the manifest file with the extracted duration value
-generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+if __name__ == '__main__':
+    excel_file = r'data\1038-0610-0614-evening.xlsx'
+    csv_file = convert_xlsx_to_csv(excel_file)
+    # Define the input and output file paths
+    original_CSV_filepath = csv_file
+    modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
+    manifest_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\NEW_z2_G4_Sci.yaml'
 
-print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
-print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
-print(f"Extracted duration value: {duration}")
+    modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
+    # Generate the manifest file with the extracted duration value
+    generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+
+    print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
+    print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
+    print(f"Extracted duration value: {duration}")

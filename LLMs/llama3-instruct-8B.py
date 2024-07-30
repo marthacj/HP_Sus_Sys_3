@@ -10,13 +10,14 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import logging
-from langchain_core.tools import tool
-from langchain import hub
-from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain_openai import ChatOpenAI
-from ollama import OllamaModel, OllamaAgent, OllamaAgentExecutor
+# from langchain_core.tools import tool
+# from langchain import hub
+# from langchain.agents import AgentExecutor, create_openai_tools_agent
+# from langchain_openai import ChatOpenAI
+# from ollama import OllamaModel, OllamaAgent, OllamaAgentExecutor
 
-
+# pushed to git so need new key:
+# KEY = """sk-proj-oAyTGcVCbFbpWLFhHsPST3BlbkFJy11eIi8CryUucNeXqvZg"""
 # from langchain_core.prompts import PromptTemplate
 
 
@@ -31,17 +32,18 @@ llm = Llama(
           n_gpu_layers=-1,
           verbose=True,
 )
-
+# "Can you tell me how much carbon emission is produced by a 24 core machine, using on average 0.08% central processing unit utilisation?"
 # Define the standard set of questions which will be used across all tests
-questions = ["Can you tell me how much carbon emission is produced by a 24 core machine which is using on average 0.0807847747114039% CPU utilisation?", 
-                "How much is the total carbon footprint for all the machines", 
+questions = ["Can you tell me how much carbon emission is produced by machine ld71r18u44dws?", 
+                "How much is the total carbon emissions for all the machines?", 
                 "Which is the machine that uses GPU most intensively on average?", 
-                "Give me a summary of the compute usage for all the machines",
+                "Give me a summary of the central processing unit usage for all the machines",
                 "Which of the machines do you recommend being moved to the next level up of compute power and why?",
-                "What is the average GPU usage for each machine?",
+                "What is the central processing unit average utilisation for each machine?",
                 "What machine has the highest carbon emission value?"]
 
 few_shots = [ 
+
               ("How much is the carbon footprint of all the machines?", 
               "Look in <BACKGROUND> and add together all the 'machine-carbon-emission-value' values for each 'machine-id'"),
                 ("Which is the machine that uses GPU most intensively on average?", 
@@ -74,27 +76,32 @@ def read_sentences_from_file(file_path):
     return sentences
 
 """agent experiments"""
-prompt = hub.pull("hwchase17/openai-tools-agent")
-sys.exit()
+# prompt = hub.pull("hwchase17/openai-tools-agent")
 
 try:
     # Load the pre-trained BERT-based model
-    model = SentenceTransformer('bert-base-nli-mean-tokens')
+    # model = SentenceTransformer('bert-base-nli-mean-tokens')
+    # model = SentenceTransformer('all-mpnet-base-v2')
+    model = SentenceTransformer('multi-qa-mpnet-base-cos-v1')
 
     # Path to your data.txt file
     file_path = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\data.txt'
 
     # Read sentences from the file
     sentences = read_sentences_from_file(file_path)
+    
+    # sentences += ['CPU','cpu','CPU CPU','cpu cpu','something cpu','something cpu something','CPU CPU CPU','cpu cpu cpu','CPU CPU CPU CPU','cpu cpu cpu cpu','CPU CPU CPU CPU CPU something','something cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu cpu']
     import os, pickle
     """if embeddings.pickle exists, load the embeddings from file  and skip the encoding step"""
     if os.path.exists('embeddings.pickle'):   
         # Load the embeddings from file
         with open('embeddings.pickle', 'rb') as file:
             embeddings = pickle.load(file)
+            rebuild_faiss_index = False
     else:
         # Encode sentences to get their embeddings
         embeddings = model.encode(sentences)
+        rebuild_faiss_index = True
         
         """save the encodings to pickle file"""
         with open('embeddings.pickle', 'wb') as file:
@@ -104,10 +111,10 @@ try:
 
     # Create a FAISS index
     d = embeddings.shape[1]  # Dimension of embeddings (768)
-    index = faiss.IndexFlatL2(d)  # Using L2 distance (Euclidean distance)
+    index = faiss.IndexFlatL2(d)
     
     """if faiss_index.bin exists, load the index from file and skip the add step"""
-    if os.path.exists('faiss_index.bin'):
+    if os.path.exists('faiss_index.bin') and not rebuild_faiss_index:
         index = faiss.read_index('faiss_index.bin')
         print("FAISS index loaded from 'faiss_index.bin'")
     else:
@@ -127,6 +134,7 @@ except Exception as e:
     logging.error(f"An error occurred: {e}")
 
 q = questions[0]
+"""questions[5]"""
 q_embedding = model.encode(q)
 print(q_embedding.shape)
 q_embedding = q_embedding.reshape(1, -1)
@@ -138,6 +146,10 @@ print("Question:", q    )
     print(f"Distance: {distance}")
     print(f"Sentence: {sentences[ind]}\n")"""
 prompt = """Here is your context for a question I will ask you:\n"""
+returns = [[sentences[i], d] for i, d in zip(indices[0], distances[0])]
+for r in returns:
+    print(r)
+input("Press Enter to continue...")
 for ind, distance in zip(indices[0], distances[0]):
     prompt += f"{sentences[ind]}\n"
 prompt += f"Here is a new question for you to answer:\n{q}"
