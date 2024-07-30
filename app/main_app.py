@@ -57,10 +57,10 @@ def prepare_excel_file(excel_file):
     replace_dict = {
         '#Cores': 'number of cores (central processing unit % utilization)',
         'CPU\nHighest\navg': 'central processing unit average (central processing unit % utilization)',
-        'GPU\navg': 'GPU average (NVIDIA % Utilization)',
+        'GPU\navg': 'graphics processing unit average (NVIDIA % Utilization)',
         'Total MB\nSent': 'total MB sent (All Network Traffic)',
         'Total MB\nReceived': 'total MB received (All Network Traffic)',
-        'GPU\n#oc > 80%': 'GPU number of occurrences over 80% (NVIDIA % utilization)',
+        'GPU\n#oc > 80%': 'graphics processing unit number of occurrences over 80% (NVIDIA % utilization)',
         'Core\nHighest\nmax': 'core maximum (central processing unit % utilization)',
         'Core\nHighest\navg': 'core average (central processing unit % utilization)',
         'Core\n# oc > 80%': 'core number of occurrences over 80% (central processing unit % Utilization)',
@@ -102,6 +102,14 @@ def prepare_excel_file(excel_file):
     # now drop the last three rows in the df
     df.drop(df.tail(3).index, inplace=True)
 
+
+    """round the values in the column GPU average (NVIDIA % Utilization) to 3 decimal places"""
+    df['graphics processing unit average (NVIDIA % Utilization)'] = df['graphics processing unit average (NVIDIA % Utilization)'].apply(lambda x: round(x, 3))
+    df['central processing unit average (central processing unit % utilization)'] = df['central processing unit average (central processing unit % utilization)'].apply(lambda x: round(x, 3))
+    df['core average (central processing unit % utilization)'] = df['core average (central processing unit % utilization)'].apply(lambda x: round(x, 3))
+    df['core maximum (central processing unit % utilization)'] = df['core maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
+    df['central processing unit Maximum (central processing unit % utilization)'] = df['central processing unit Maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
+    
     return df
 
 
@@ -340,7 +348,7 @@ def embed_sentences(sentences, model):
 
 def generate_question(index, embeddings, model, sentences, questions):
     try:
-        q = questions[1]
+        q = questions[6]
         q_embedding = model.encode(q)
         q_embedding = q_embedding.reshape(1, -1)
         
