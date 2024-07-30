@@ -207,12 +207,12 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 0.080784775
+        cpu/utilization: 0.1068956176778499
         max-cpu-wattage: 280
         gpu/utilization: 1.0
         max-gpu-wattage: 70
-        total-MB-sent: 832.1846684
-        total-MB-received: 1446.80423
+        total-MB-sent: 832.1846683778874
+        total-MB-received: 1446.804229656907
         instance-type: z2 mini
         machine-code: ld71r18u44dws
         time-reserved: 157788000
@@ -226,12 +226,12 @@ tree:
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 0.13201367
+        cpu/utilization: 0.1642084701261979
         max-cpu-wattage: 1400
-        gpu/utilization: 0.005128205
+        gpu/utilization: 0.005641025641025641
         max-gpu-wattage: 230
-        total-MB-sent: 632.0265548
-        total-MB-received: 1529.862472
+        total-MB-sent: 632.0265548067528
+        total-MB-received: 1529.862472338883
         instance-type: Z4R G4
         machine-code: ld71r16u15ws
         time-reserved: 157788000
@@ -245,12 +245,12 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 2.374675111
+        cpu/utilization: 1.408925411333655
         max-cpu-wattage: 280
-        gpu/utilization: 4.121087737
+        gpu/utilization: 1.901025641025657
         max-gpu-wattage: 70
-        total-MB-sent: 3757.863342
-        total-MB-received: 3770.940366
+        total-MB-sent: 3757.863341558264
+        total-MB-received: 3770.940366416131
         instance-type: z2 mini
         machine-code: ld71r18u44fws
         time-reserved: 157788000
@@ -264,12 +264,12 @@ tree:
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 0.128619427
+        cpu/utilization: 0.274482596921672
         max-cpu-wattage: 1400
-        gpu/utilization: 0.004615385
+        gpu/utilization: 0.006676938880328711
         max-gpu-wattage: 230
-        total-MB-sent: 859.6917819
-        total-MB-received: 2707.836391
+        total-MB-sent: 859.6917818945999
+        total-MB-received: 2707.836391279287
         instance-type: Z4R G4
         machine-code: ld71r16u13ws
         time-reserved: 157788000
@@ -283,12 +283,12 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 0.445829334
+        cpu/utilization: 0.2656404420711027
         max-cpu-wattage: 280
-        gpu/utilization: 0.715238584
+        gpu/utilization: 0.1676923076923068
         max-gpu-wattage: 70
-        total-MB-sent: 803.9446746
-        total-MB-received: 17003.17031
+        total-MB-sent: 803.9446746331784
+        total-MB-received: 17003.17031116769
         instance-type: z2 mini
         machine-code: ld71r18u44bws
         time-reserved: 157788000
@@ -302,12 +302,12 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 0.090862504
+        cpu/utilization: 0.1215987597896913
         max-cpu-wattage: 280
-        gpu/utilization: 0.005641026
+        gpu/utilization: 0.006666666666666665
         max-gpu-wattage: 70
-        total-MB-sent: 1907.203541
-        total-MB-received: 2480.276325
+        total-MB-sent: 1907.100414240825
+        total-MB-received: 2480.107864107751
         instance-type: z2 mini
         machine-code: ld71r18u44cws
         time-reserved: 157788000
@@ -321,12 +321,12 @@ tree:
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 0.135559799
+        cpu/utilization: 0.166101130945421
         max-cpu-wattage: 1400
-        gpu/utilization: 0.003076923
+        gpu/utilization: 0.004617752693689071
         max-gpu-wattage: 230
-        total-MB-sent: 1063.412556
-        total-MB-received: 2309.490604
+        total-MB-sent: 1063.412555656252
+        total-MB-received: 2309.490603607732
         instance-type: Z4R G4
         machine-code: ld71r16u14ws
         time-reserved: 157788000
@@ -340,12 +340,12 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 0.821035114
+        cpu/utilization: 1.009326705257337
         max-cpu-wattage: 280
-        gpu/utilization: 1.0
+        gpu/utilization: 0.8504398826979469
         max-gpu-wattage: 70
-        total-MB-sent: 216.1334385
-        total-MB-received: 360.3143456
+        total-MB-sent: 216.7675495406835
+        total-MB-received: 360.641580261303
         instance-type: z2 mini
         machine-code: ld71r18u44ews
         time-reserved: 157788000

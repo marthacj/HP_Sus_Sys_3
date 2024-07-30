@@ -1,0 +1,700 @@
+name: sci-calculation
+description: >-
+  Calculate operational carbon from CPU utilization, GPU utilization, and
+  network usage.
+              SCI is ISO-recognized standard for reporting carbon costs of running software, takes into account all the energy used by the application; below includes CPU energy and network energy.
+initialize:
+  plugins:
+    group-by:
+      path: builtin
+      method: GroupBy
+    interpolate:
+      path: builtin
+      method: Interpolation
+      global-config:
+        method: linear
+        x:
+          - 0
+          - 10
+          - 50
+          - 100
+        'y':
+          - 0.12
+          - 0.32
+          - 0.75
+          - 1.02
+        input-parameter: cpu/utilization
+        output-parameter: cpu-factor
+    cpu-factor-to-wattage:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - cpu-factor
+          - cpu/thermal-design-power
+        output-parameter: cpu-wattage
+    gpu-utilisation-percentage-to-decimal:
+      path: builtin
+      method: Divide
+      global-config:
+        numerator: gpu/utilization
+        denominator: 100
+        output: gpu-utilization
+    gpu-utilisation-to-wattage:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - gpu-utilization
+          - max-gpu-wattage
+        output-parameter: gpu-wattage
+    gpu-wattage-times-duration:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - gpu-wattage
+          - duration
+        output-parameter: gpu-wattage-times-duration
+    gpu-wattage-to-energy-kwh:
+      path: builtin
+      method: Divide
+      global-config:
+        numerator: gpu-wattage-times-duration
+        denominator: 3600000
+        output: gpu/energy
+    cpu-utilisation-percentage-to-decimal:
+      path: builtin
+      method: Divide
+      global-config:
+        numerator: cpu/utilization
+        denominator: 100
+        output: cpu-utilization
+    cpu-utilisation-to-wattage:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - cpu-utilization
+          - cpu/thermal-design-power
+        output-parameter: cpu-wattage
+    cpu-wattage-times-duration:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - cpu-wattage
+          - duration
+        output-parameter: cpu-wattage-times-duration
+    cpu-wattage-to-energy-kwh:
+      path: builtin
+      method: Divide
+      global-config:
+        numerator: cpu-wattage-times-duration
+        denominator: 3600000
+        output: cpu-energy-raw
+    calculate-vcpu-ratio:
+      path: builtin
+      method: Divide
+      global-config:
+        numerator: vcpus-allocated
+        denominator: vcpus-total
+        output: vcpu-ratio
+    correct-cpu-energy-for-vcpu-ratio:
+      path: builtin
+      method: Divide
+      global-config:
+        numerator: cpu-energy-raw
+        denominator: vcpu-ratio
+        output: cpu/energy
+    energy-sent:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - total-MB-sent
+          - network-intensity
+        output-parameter: energy-sent-joules
+    energy-received:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - total-MB-received
+          - network-intensity
+        output-parameter: energy-received-joules
+    sum-network-energy-joules:
+      path: builtin
+      method: Sum
+      global-config:
+        input-parameters:
+          - energy-sent-joules
+          - energy-received-joules
+        output-parameter: total-energy-network-joules
+    total-network-energy-to-kwh:
+      path: builtin
+      method: Divide
+      global-config:
+        numerator: total-energy-network-joules
+        denominator: 3600000
+        output: network/energy
+    sum-energy-components:
+      path: builtin
+      method: Sum
+      global-config:
+        input-parameters:
+          - cpu/energy
+          - gpu/energy
+          - network/energy
+        output-parameter: energy
+    sci-embodied:
+      path: builtin
+      method: SciEmbodied
+    operational-carbon:
+      path: builtin
+      method: Multiply
+      global-config:
+        input-parameters:
+          - energy
+          - grid/carbon-intensity
+        output-parameter: carbon-operational
+    sum-carbon:
+      path: builtin
+      method: Sum
+      global-config:
+        input-parameters:
+          - carbon-operational
+          - carbon-embodied
+        output-parameter: carbon
+    sci:
+      path: builtin
+      method: Sci
+      global-config:
+        functional-unit: machine
+  outputs:
+    - yaml
+execution:
+  command: >-
+    C:\Program Files\nodejs\node.exe
+    C:\Users\martha.calder-jones\AppData\Roaming\npm\node_modules\@grnsft\if\build\index.js
+    --manifest C:\Users\martha.calder-jones\OneDrive - University College
+    London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\NEW_z2_G4_Sci.yaml
+    --output C:\Users\martha.calder-jones\OneDrive - University College
+    London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\outputs\z2_G4_Sci_Output
+  environment:
+    if-version: 0.4.0
+    os: "Microsoft Windows 10 Enterprise\r"
+    os-version: 10.0.19045 N/A Build 19045
+    node-version: 20.14.0
+    date-time: 2024-07-30T13:24:57.364Z (UTC)
+    dependencies: []
+  status: success
+tree:
+  children:
+    child:
+      pipeline:
+        - group-by
+        - gpu-utilisation-percentage-to-decimal
+        - gpu-utilisation-to-wattage
+        - gpu-wattage-times-duration
+        - gpu-wattage-to-energy-kwh
+        - cpu-utilisation-percentage-to-decimal
+        - cpu-utilisation-to-wattage
+        - cpu-wattage-times-duration
+        - cpu-wattage-to-energy-kwh
+        - calculate-vcpu-ratio
+        - correct-cpu-energy-for-vcpu-ratio
+        - energy-sent
+        - energy-received
+        - sum-network-energy-joules
+        - total-network-energy-to-kwh
+        - sum-energy-components
+        - sci-embodied
+        - operational-carbon
+        - sum-carbon
+        - sci
+      config:
+        group-by:
+          group:
+            - machine-code
+      children:
+        ld71r18u44dws:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 0.1068956176778499
+              max-cpu-wattage: 280
+              gpu/utilization: 1
+              max-gpu-wattage: 70
+              total-MB-sent: 832.1846683778874
+              total-MB-received: 1446.804229656907
+              instance-type: z2 mini
+              machine-code: ld71r18u44dws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 0.1068956176778499
+              max-cpu-wattage: 280
+              gpu/utilization: 1
+              max-gpu-wattage: 70
+              total-MB-sent: 832.1846683778874
+              total-MB-received: 1446.804229656907
+              instance-type: z2 mini
+              machine-code: ld71r18u44dws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.01
+              gpu-wattage: 0.7000000000000001
+              gpu-wattage-times-duration: 151200
+              gpu/energy: 0.042
+              cpu-utilization: 0.001068956176778499
+              cpu-wattage: 0.09620605591006491
+              cpu-wattage-times-duration: 20780.50807657402
+              cpu-energy-raw: 0.005772363354603895
+              vcpu-ratio: 1
+              cpu/energy: 0.005772363354603895
+              energy-sent-joules: 0.10319089887885805
+              energy-received-joules: 0.17940372447745648
+              total-energy-network-joules: 0.2825946233563145
+              network/energy: 7.849850648786514e-8
+              energy: 0.04777244185311039
+              carbon-embodied: 0.506694045174538
+              carbon-operational: 1.480945697446422
+              carbon: 1.98763974262096
+              sci: 1.98763974262096
+        ld71r16u15ws:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 306
+              cpu/thermal-design-power: 165
+              vcpus-total: 28
+              vcpus-allocated: 28
+              cpu/utilization: 0.1642084701261979
+              max-cpu-wattage: 1400
+              gpu/utilization: 0.005641025641025641
+              max-gpu-wattage: 230
+              total-MB-sent: 632.0265548067528
+              total-MB-received: 1529.862472338883
+              instance-type: Z4R G4
+              machine-code: ld71r16u15ws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 306
+              cpu/thermal-design-power: 165
+              vcpus-total: 28
+              vcpus-allocated: 28
+              cpu/utilization: 0.1642084701261979
+              max-cpu-wattage: 1400
+              gpu/utilization: 0.005641025641025641
+              max-gpu-wattage: 230
+              total-MB-sent: 632.0265548067528
+              total-MB-received: 1529.862472338883
+              instance-type: Z4R G4
+              machine-code: ld71r16u15ws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.00005641025641025641
+              gpu-wattage: 0.012974358974358974
+              gpu-wattage-times-duration: 2802.461538461538
+              gpu/energy: 0.0007784615384615384
+              cpu-utilization: 0.001642084701261979
+              cpu-wattage: 0.27094397570822654
+              cpu-wattage-times-duration: 58523.89875297693
+              cpu-energy-raw: 0.016256638542493592
+              vcpu-ratio: 1
+              cpu/energy: 0.016256638542493592
+              energy-sent-joules: 0.07837129279603734
+              energy-received-joules: 0.18970294657002149
+              total-energy-network-joules: 0.26807423936605884
+              network/energy: 7.44650664905719e-8
+              energy: 0.01703517454602162
+              carbon-embodied: 0.4188911704312115
+              carbon-operational: 0.5280904109266702
+              carbon: 0.9469815813578817
+              sci: 0.9469815813578817
+        ld71r18u44fws:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 1.408925411333655
+              max-cpu-wattage: 280
+              gpu/utilization: 1.901025641025657
+              max-gpu-wattage: 70
+              total-MB-sent: 3757.863341558264
+              total-MB-received: 3770.940366416131
+              instance-type: z2 mini
+              machine-code: ld71r18u44fws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 1.408925411333655
+              max-cpu-wattage: 280
+              gpu/utilization: 1.901025641025657
+              max-gpu-wattage: 70
+              total-MB-sent: 3757.863341558264
+              total-MB-received: 3770.940366416131
+              instance-type: z2 mini
+              machine-code: ld71r18u44fws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.019010256410256568
+              gpu-wattage: 1.3307179487179597
+              gpu-wattage-times-duration: 287435.07692307926
+              gpu/energy: 0.07984307692307757
+              cpu-utilization: 0.01408925411333655
+              cpu-wattage: 1.2680328702002894
+              cpu-wattage-times-duration: 273895.0999632625
+              cpu-energy-raw: 0.07608197221201736
+              vcpu-ratio: 1
+              cpu/energy: 0.07608197221201736
+              energy-sent-joules: 0.4659750543532247
+              energy-received-joules: 0.4675966054356003
+              total-energy-network-joules: 0.9335716597888251
+              network/energy: 2.593254610524514e-7
+              energy: 0.15592530846055597
+              carbon-embodied: 0.506694045174538
+              carbon-operational: 4.833684562277235
+              carbon: 5.340378607451774
+              sci: 5.340378607451774
+        ld71r16u13ws:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 306
+              cpu/thermal-design-power: 165
+              vcpus-total: 28
+              vcpus-allocated: 28
+              cpu/utilization: 0.274482596921672
+              max-cpu-wattage: 1400
+              gpu/utilization: 0.006676938880328711
+              max-gpu-wattage: 230
+              total-MB-sent: 859.6917818945999
+              total-MB-received: 2707.836391279287
+              instance-type: Z4R G4
+              machine-code: ld71r16u13ws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 306
+              cpu/thermal-design-power: 165
+              vcpus-total: 28
+              vcpus-allocated: 28
+              cpu/utilization: 0.274482596921672
+              max-cpu-wattage: 1400
+              gpu/utilization: 0.006676938880328711
+              max-gpu-wattage: 230
+              total-MB-sent: 859.6917818945999
+              total-MB-received: 2707.836391279287
+              instance-type: Z4R G4
+              machine-code: ld71r16u13ws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.00006676938880328712
+              gpu-wattage: 0.015356959424756038
+              gpu-wattage-times-duration: 3317.103235747304
+              gpu/energy: 0.0009214175654853622
+              cpu-utilization: 0.0027448259692167197
+              cpu-wattage: 0.45289628492075873
+              cpu-wattage-times-duration: 97825.59754288389
+              cpu-energy-raw: 0.027173777095245523
+              vcpu-ratio: 1
+              cpu/energy: 0.027173777095245523
+              energy-sent-joules: 0.10660178095493039
+              energy-received-joules: 0.3357717125186316
+              total-energy-network-joules: 0.442373493473562
+              network/energy: 1.2288152596487834e-7
+              energy: 0.02809531754225685
+              carbon-embodied: 0.4188911704312115
+              carbon-operational: 0.8709548438099624
+              carbon: 1.2898460142411738
+              sci: 1.2898460142411738
+        ld71r18u44bws:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 0.2656404420711027
+              max-cpu-wattage: 280
+              gpu/utilization: 0.1676923076923068
+              max-gpu-wattage: 70
+              total-MB-sent: 803.9446746331784
+              total-MB-received: 17003.17031116769
+              instance-type: z2 mini
+              machine-code: ld71r18u44bws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 0.2656404420711027
+              max-cpu-wattage: 280
+              gpu/utilization: 0.1676923076923068
+              max-gpu-wattage: 70
+              total-MB-sent: 803.9446746331784
+              total-MB-received: 17003.17031116769
+              instance-type: z2 mini
+              machine-code: ld71r18u44bws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.001676923076923068
+              gpu-wattage: 0.11738461538461477
+              gpu-wattage-times-duration: 25355.07692307679
+              gpu/energy: 0.007043076923076886
+              cpu-utilization: 0.002656404420711027
+              cpu-wattage: 0.23907639786399243
+              cpu-wattage-times-duration: 51640.501938622365
+              cpu-energy-raw: 0.014344583871839546
+              vcpu-ratio: 1
+              cpu/energy: 0.014344583871839546
+              energy-sent-joules: 0.09968913965451412
+              energy-received-joules: 2.108393118584794
+              total-energy-network-joules: 2.2080822582393083
+              network/energy: 6.133561828442522e-7
+              energy: 0.021388274151099278
+              carbon-embodied: 0.506694045174538
+              carbon-operational: 0.6630364986840777
+              carbon: 1.1697305438586156
+              sci: 1.1697305438586156
+        ld71r18u44cws:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 0.1215987597896913
+              max-cpu-wattage: 280
+              gpu/utilization: 0.006666666666666665
+              max-gpu-wattage: 70
+              total-MB-sent: 1907.100414240825
+              total-MB-received: 2480.107864107751
+              instance-type: z2 mini
+              machine-code: ld71r18u44cws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 0.1215987597896913
+              max-cpu-wattage: 280
+              gpu/utilization: 0.006666666666666665
+              max-gpu-wattage: 70
+              total-MB-sent: 1907.100414240825
+              total-MB-received: 2480.107864107751
+              instance-type: z2 mini
+              machine-code: ld71r18u44cws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.00006666666666666666
+              gpu-wattage: 0.004666666666666666
+              gpu-wattage-times-duration: 1007.9999999999999
+              gpu/energy: 0.00028
+              cpu-utilization: 0.001215987597896913
+              cpu-wattage: 0.10943888381072217
+              cpu-wattage-times-duration: 23638.79890311599
+              cpu-energy-raw: 0.0065663330286433305
+              vcpu-ratio: 1
+              cpu/energy: 0.0065663330286433305
+              energy-sent-joules: 0.23648045136586232
+              energy-received-joules: 0.30753337514936113
+              total-energy-network-joules: 0.5440138265152235
+              network/energy: 1.511149518097843e-7
+              energy: 0.00684648414359514
+              carbon-embodied: 0.506694045174538
+              carbon-operational: 0.21224100845144933
+              carbon: 0.7189350536259873
+              sci: 0.7189350536259873
+        ld71r16u14ws:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 306
+              cpu/thermal-design-power: 165
+              vcpus-total: 28
+              vcpus-allocated: 28
+              cpu/utilization: 0.166101130945421
+              max-cpu-wattage: 1400
+              gpu/utilization: 0.004617752693689071
+              max-gpu-wattage: 230
+              total-MB-sent: 1063.412555656252
+              total-MB-received: 2309.490603607732
+              instance-type: Z4R G4
+              machine-code: ld71r16u14ws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 306
+              cpu/thermal-design-power: 165
+              vcpus-total: 28
+              vcpus-allocated: 28
+              cpu/utilization: 0.166101130945421
+              max-cpu-wattage: 1400
+              gpu/utilization: 0.004617752693689071
+              max-gpu-wattage: 230
+              total-MB-sent: 1063.412555656252
+              total-MB-received: 2309.490603607732
+              instance-type: Z4R G4
+              machine-code: ld71r16u14ws
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.00004617752693689071
+              gpu-wattage: 0.010620831195484863
+              gpu-wattage-times-duration: 2294.0995382247306
+              gpu/energy: 0.0006372498717290918
+              cpu-utilization: 0.00166101130945421
+              cpu-wattage: 0.2740668660599447
+              cpu-wattage-times-duration: 59198.44306894805
+              cpu-energy-raw: 0.01644401196359668
+              vcpu-ratio: 1
+              cpu/energy: 0.01644401196359668
+              energy-sent-joules: 0.13186315690137523
+              energy-received-joules: 0.28637683484735876
+              total-energy-network-joules: 0.418239991748734
+              network/energy: 1.1617777548575945e-7
+              energy: 0.017081378013101257
+              carbon-embodied: 0.4188911704312115
+              carbon-operational: 0.529522718406139
+              carbon: 0.9484138888373504
+              sci: 0.9484138888373504
+        ld71r18u44ews:
+          inputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 1.009326705257337
+              max-cpu-wattage: 280
+              gpu/utilization: 0.8504398826979469
+              max-gpu-wattage: 70
+              total-MB-sent: 216.7675495406835
+              total-MB-received: 360.641580261303
+              instance-type: z2 mini
+              machine-code: ld71r18u44ews
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+          outputs:
+            - timestamp: '2024-06-09T23:00:00.000Z'
+              device/emissions-embodied: 370.14
+              cpu/thermal-design-power: 90
+              vcpus-total: 24
+              vcpus-allocated: 24
+              cpu/utilization: 1.009326705257337
+              max-cpu-wattage: 280
+              gpu/utilization: 0.8504398826979469
+              max-gpu-wattage: 70
+              total-MB-sent: 216.7675495406835
+              total-MB-received: 360.641580261303
+              instance-type: z2 mini
+              machine-code: ld71r18u44ews
+              time-reserved: 157788000
+              grid/carbon-intensity: 31
+              device/expected-lifespan: 157788000
+              duration: 216000
+              network-intensity: 0.000124
+              machine: 1
+              gpu-utilization: 0.008504398826979469
+              gpu-wattage: 0.5953079178885629
+              gpu-wattage-times-duration: 128586.51026392958
+              gpu/energy: 0.03571847507331377
+              cpu-utilization: 0.010093267052573369
+              cpu-wattage: 0.9083940347316032
+              cpu-wattage-times-duration: 196213.1115020263
+              cpu-energy-raw: 0.054503642083896194
+              vcpu-ratio: 1
+              cpu/energy: 0.054503642083896194
+              energy-sent-joules: 0.026879176143044754
+              energy-received-joules: 0.04471955595240157
+              total-energy-network-joules: 0.07159873209544632
+              network/energy: 1.9888536693179532e-8
+              energy: 0.09022213704574665
+              carbon-embodied: 0.506694045174538
+              carbon-operational: 2.7968862484181463
+              carbon: 3.303580293592684
+              sci: 3.303580293592684
