@@ -60,7 +60,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
                     data_pulled = parts[i].strip()
                     date_range = data_pulled.replace("Data Pulled: ", "")
                     start_date_str, end_date_str = date_range.split(" - ")
-
+                    # print(data_pulled)
                     # Define the date format
                     date_format = "%b %d %Y %H:%M:%S"
 
@@ -70,7 +70,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
                     end_date = datetime.strptime(end_date_str, date_format)
 
                     # Print the datetime objects
-                    print("Start Date:", start_date)
+                    print("\n\n\nStart Date:", start_date)
                     print("End Date:", end_date)
                    
                     break
@@ -119,7 +119,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     # Replace column names using the replace_dict
     df.rename(columns=replace_dict, inplace=True)
 
-    print(df)
+    # print(df)
     
     df['machine-family'] = ''
     df['max-cpu-wattage'] = ''
@@ -153,11 +153,9 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             df.at[index, 'GPU_average'] = 1
             
          
+    # print(df)
 
-    print(df)
-
-    print(df.columns)
-    print(df['GPU_average'])
+    # print(df.columns)
     templates = []
 
     # Iterate through each row in the DataFrame and process it
@@ -167,7 +165,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
         template = process_row(row, start_date, duration)
         templates.append(template)
 
-    print(templates)
+    # print(templates)
     
     # Output the modified DataFrame to a new CSV file
     df.to_csv(modified_CSV_filepath, index=False)
@@ -409,7 +407,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
             }
         }
     
-    print(manifest)
+    # print(manifest)
     # Save the manifest to a YAML file
     with open(manifest_filepath, 'w', encoding='utf-8') as file:
         yaml.dump(manifest, file, default_flow_style=False, sort_keys=False)
@@ -429,4 +427,4 @@ if __name__ == '__main__':
 
     print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
     print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
-    print(f"Extracted duration value: {duration}")
+    print(f"Extracted duration value: {duration}\n\n\n")
