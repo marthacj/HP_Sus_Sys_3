@@ -140,7 +140,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             df.at[index, 'max-cpu-wattage'] = 280
             df.at[index, 'max-gpu-wattage'] = 70
             df.at[index, 'cpu/thermal-design-power'] = 90
-            df.at[index, 'device/emissions-embodied'] = 370.14
+            df.at[index, 'device/emissions-embodied'] = 370.14 * 1000
             df.at[index, 'memory/thermal-design-power'] = 17
         elif row['cores'] == '28':
             df.at[index, 'cores'] = 28
@@ -148,7 +148,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             df.at[index, 'max-cpu-wattage'] = 1400
             df.at[index, 'max-gpu-wattage'] = 230
             df.at[index, 'cpu/thermal-design-power'] = 165
-            df.at[index, 'device/emissions-embodied'] = 306
+            df.at[index, 'device/emissions-embodied'] = 306 * 1000
             df.at[index, 'memory/thermal-design-power'] = 48
         if row['GPU_average'] == '0':
             df.at[index, 'GPU_average'] = 0.1

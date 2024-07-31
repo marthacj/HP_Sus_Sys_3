@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     # cleaned up exel file into a datafrarme ready to add relevant carbon emissions data
     prepared_df = prepare_excel_file(excel_file)
-
+   
     # load the outputs from the manifest file
     emissions_reference_data = load_data_files(yaml_file)
     # extract only the data we intend to add to the dataframe for the LLM
@@ -88,9 +88,8 @@ if __name__ == '__main__':
 
     # now add the carbon emissions data to the prepared dataframe
     merged_df = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
-    
     # Append the total carbon emissions row
-    merged_df = append_sum_row(merged_df, 'carbon emissions (g/Co2)')
+    # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
 
     # Save the merged DataFrame to a CSV file 
     merged_df.to_csv('embeddings\merged_df.csv', index=False)
