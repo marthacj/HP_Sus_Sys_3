@@ -10,6 +10,8 @@ from sentence_transformers import SentenceTransformer
 import pickle
 from llama_cpp import Llama
 import ollama
+from modify_csv import convert_xlsx_to_csv, process_row, process_csv, generate_manifest
+import subprocess
 
 questions = ["Can you tell me how much carbon emission is produced by machine ld71r18u44dws?", 
                 "How much is the total carbon emissions for all the machines?", 
@@ -46,7 +48,6 @@ def prepare_excel_file(excel_file):
     if len(headers) != num_columns:
         raise ValueError(f"Length mismatch: Expected {num_columns} columns, but got {len(headers)} headers.")
     df.insert(2, 'carbon emissions (g/co2)', pd.NA)  # You can initialize with pd.NA or any default value
-    print(df['carbon emissions (g/co2)'])
     # Update headers to reflect the new column
     headers.insert(2, 'carbon emissions (g/Co2)')  # Insert 'carbon' into the correct position
     # Set the new headers
@@ -141,7 +142,7 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
     lowest_children_level = yaml_data['tree']['children']['child']['children']
     lowest_children_level.update(yaml_data['tree']['children']['child']['children'])
     """dump the yaml to file for debug"""
-    with open('yaml_dump.txt', 'w') as f:
+    with open('embeddings\yaml_dump.txt', 'w') as f:
         yaml.dump(lowest_children_level, f)
     for i, machine in enumerate(lowest_children_level):
         for child in lowest_children_level[machine]['outputs']:
@@ -169,7 +170,7 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
             # child['machine-carbon-emission-value'] = child.pop('carbon')
             """machine_dict['machine-id-'+machine] = child"""
             machine_emissions_list.append(child)
-        
+
     return machine_emissions_list, machine_id_dict
 
 
@@ -181,11 +182,9 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
         if idx < len(machine_ids):
             item['machine'] = machine_ids[idx]
     for machine in machine_emissions_list:
-        print(machine_emissions_list)
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
                 prepared_df.loc[i, 'carbon emissions (g/Co2)'] = machine['carbon']
-                print(prepared_df.loc[i, 'carbon emissions (g/Co2)'])
     """if there is no column called duration, add it to the dataframe  and fill it with the duration value"""
     if 'duration' not in prepared_df.columns:
         prepared_df.insert(2, 'duration (seconds)', pd.NA)
@@ -199,7 +198,6 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
                 prepared_df.loc[i, 'embodied carbon (gCO2)'] = machine['carbon-embodied']  
-                print('HERE:', prepared_df.loc[i, 'embodied carbon (gCO2)']) 
     if 'operational carbon (gCO2)' not in prepared_df.columns:
         prepared_df.insert(2, 'operational carbon (gCO2)', pd.NA)
     for machine in machine_emissions_list:
@@ -252,19 +250,32 @@ def csv_to_json(csv_filename, as_json=True):
     with open(csv_filename, mode='r') as file:
         csvFile = csv.reader(file)
         headers = next(csvFile)
+    
+        # Find the index of the 'carbon emissions (g/co2)' column
+        carbon_emissions_index = headers.index('carbon emissions (g/Co2)')
+        
         for row in csvFile:
-            data_dict[row[0]] = {headers[i]: row[i] for i in range(1, len(headers))}
+            row_key = row[0]
+            
+            if row_key == 'total carbon emissions in g/co2':
+                # Include only the 'carbon emissions (g/co2)' column if it's non-zero
+                if row[carbon_emissions_index] != '0':
+                    data_dict[row_key] = {headers[carbon_emissions_index]: row[carbon_emissions_index]}
+            else:
+                # Include all columns
+                data_dict[row_key] = {headers[i]: row[i] for i in range(1, len(headers))}
+
     if as_json:
         with open('data_dict.json', 'w') as f:
             json.dump(data_dict, f)
-    print('data_dict:', data_dict)
+
     return data_dict
 
 
 def flatten(data_dict):
     flat_dict = {}
     for machine_key, machine_data in data_dict.items():
-        machine_key = machine_key[6:]
+        # machine_key = machine_key[6:]
         for top_level_key, top_level_data in machine_data.items():
             if isinstance(top_level_data, dict):
                 for lower_level_key, lower_level_data in top_level_data.items():
@@ -279,9 +290,8 @@ def stringify(flat_dict):
     for k,v in flat_dict.items():
         dict_string += k.replace('_',' ') + " = " + v + "\n"
     # Changed to dict_string return not flat_dict
-    
     dict_string = deabbreviate(dict_string)
-    print('dict_string:', dict_string)
+
     return dict_string
 
 
@@ -306,9 +316,9 @@ def embed_sentences(sentences, model):
     try:
     # sentences += ['CPU','cpu','CPU CPU','cpu cpu','something cpu','something cpu something','CPU CPU CPU','cpu cpu cpu','CPU CPU CPU CPU','cpu cpu cpu cpu','CPU CPU CPU CPU CPU something','something cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu cpu']
         """if embeddings.pickle exists, load the embeddings from file  and skip the encoding step"""
-        if os.path.exists('embeddings.pickle'):   
+        if os.path.exists('embeddings\embeddings.pickle'):   
             # Load the embeddings from file
-            with open('embeddings.pickle', 'rb') as file:
+            with open('embeddings\embeddings.pickle', 'rb') as file:
                 embeddings = pickle.load(file)
                 rebuild_faiss_index = False
         else:
@@ -317,7 +327,7 @@ def embed_sentences(sentences, model):
             rebuild_faiss_index = True
             
             """save the encodings to pickle file"""
-            with open('embeddings.pickle', 'wb') as file:
+            with open('embeddings\embeddings.pickle', 'wb') as file:
                 pickle.dump(embeddings, file)
     # Convert embeddings to a numpy array
         embeddings = np.array(embeddings)
@@ -361,7 +371,8 @@ def generate_question(index, embeddings, model, sentences, questions):
             prompt += f"{sentences[ind]}\n"
         
         prompt += f"Here is a new question for you to answer:\n{q}"
-        print("prompt:", prompt)
+
+        # print("prompt:", prompt)
         
         response = send_prompt(llm, prompt, interface="ollama")
         print(response)
@@ -372,7 +383,52 @@ def generate_question(index, embeddings, model, sentences, questions):
 
 if __name__ == '__main__':
 
-    model_path = r"C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
+    # Initial pipeline for Impact Framework
+    # Define the input file path - need to work out hoow this will work if it's uploaded by the user
+    excel_file = r'data\1038-0610-0614-evening.xlsx'
+
+    # Convert the Excel file to a CSV file
+    csv_file = convert_xlsx_to_csv(excel_file)
+
+    # Define the input and output file paths
+    original_CSV_filepath = csv_file
+    modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
+    manifest_filepath = r'manifest1\NEW_z2_G4_Sci.yaml'
+
+    # Process the CSV file and extract the duration value, start date, end date, and templates to create the manifest file
+    modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
+    # Generate the manifest file with the extracted duration value
+    generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+
+    print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
+    print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
+    print(f"Extracted duration value: {duration}")
+
+    current_dir = os.getcwd()
+    print(f"Current working directory: {current_dir}")
+
+    # Construct absolute paths
+    manifest_path = os.path.join(current_dir, 'manifest1', 'NEW_z2_G4_Sci.yaml')
+    output_path = os.path.join(current_dir, 'manifest1', 'outputs', 'z2_G4_Sci_Output')
+
+    # Construct the command with absolute paths
+    command = f'ie --manifest "{manifest_path}" --output "{output_path}"'
+    # Run the terminal command
+    # command = r"ie --manifest '\manifest1\NEW_z2_G4_Sci.yaml' --output '\manifest1\outputs\z2_G4_Sci_Output'"
+
+    print("Running Impact Framework command...")
+    try:
+        result = subprocess.run(command, shell=True, check=True, text=True, capture_output=True)
+        print("Command output:")
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while running the command: {e}")
+        print("Error output:")
+        print(e.stderr)
+        sys.exit(1)
+
+    # Pipeline to run after running the termimnal commmand to run the Impact Framework
+    model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 
     llm = Llama(
         model_path=model_path,
@@ -385,7 +441,7 @@ if __name__ == '__main__':
     # taking in our raw 'uploaded xlsx file
     excel_file = r'data\1038-0610-0614-evening.xlsx'
     # taking in the output yaml file with the carbon emissions data from IF
-    yaml_file = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\outputs\z2_G4_Sci_Output.yaml'
+    yaml_file = r'manifest1\outputs\z2_G4_Sci_Output.yaml'
 
     # cleaned up exel file into a datafrarme ready to add relevant carbon emissions data
     prepared_df = prepare_excel_file(excel_file)
@@ -402,9 +458,9 @@ if __name__ == '__main__':
     merged_df = append_sum_row(merged_df, 'carbon emissions (g/Co2)')
 
     # Save the merged DataFrame to a CSV file 
-    merged_df.to_csv('merged_df.csv', index=False)
+    merged_df.to_csv('embeddings\merged_df.csv', index=False)
 
-    csv_filename = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\merged_df.csv'
+    csv_filename = r'embeddings\merged_df.csv'
 
     # convert the csv file to a json file
     data_dict_json = csv_to_json(csv_filename, as_json=False)
@@ -413,22 +469,22 @@ if __name__ == '__main__':
     flat_dict = flatten(data_dict_json)
     dict_string = stringify(flat_dict)
 
-    with open('data.txt', 'w') as f:
+    with open('embeddings\data.txt', 'w') as f:
         f.write(dict_string)
 
     # Read the stringified flat dictionary from the file
-    with open('data.txt', 'r') as f:
+    with open('embeddings\data.txt', 'r') as f:
         read_back_string = f.read()
 
     print("Stringified flat dictionary read back from the file:")
-    print(read_back_string)
+    # print(read_back_string)
 
     # Path to data.txt file
-    sentences_file_path = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\data.txt'
+    sentences_file_path = r'embeddings\data.txt'
 
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
-    print(sentences)
+    # print(sentences)
 
     # Load the pre-trained model for embedding with SentenceTransformer
     model = SentenceTransformer('multi-qa-mpnet-base-cos-v1')
