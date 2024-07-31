@@ -45,9 +45,9 @@ def prepare_excel_file(excel_file):
     num_columns = len(df.columns)
     if len(headers) != num_columns:
         raise ValueError(f"Length mismatch: Expected {num_columns} columns, but got {len(headers)} headers.")
-    df.insert(2, 'carbon emissions (g/co2)', pd.NA)  # You can initialize with pd.NA or any default value
+    df.insert(2, 'carbon emissions (gCO2eq)', pd.NA)  # You can initialize with pd.NA or any default value
     # Update headers to reflect the new column
-    headers.insert(2, 'carbon emissions (g/Co2)')  # Insert 'carbon' into the correct position
+    headers.insert(2, 'carbon emissions (gCO2eq)')  # Insert 'carbon' into the correct position
     # Set the new headers
     df.columns = headers
     # Drop the first two rows which were used for headers
@@ -108,8 +108,8 @@ def prepare_excel_file(excel_file):
     df['core average (central processing unit % utilization)'] = df['core average (central processing unit % utilization)'].apply(lambda x: round(x, 3))
     df['core maximum (central processing unit % utilization)'] = df['core maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
     df['central processing unit Maximum (central processing unit % utilization)'] = df['central processing unit Maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
-    
     return df
+ 
 
 
 def load_data_files(yaml_file, return_yaml: bool = False) -> tuple:
@@ -153,11 +153,11 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
             """convert that to a string"""
             child['timestamp'] = child['timestamp'].strftime('%Y-%m-%d')
             """round sci to 6 dp"""
-            child['sci'] = round(child['sci'], 3)
-            child['carbon'] = round(child['carbon'], 3)
+            child['sci'] = round(child['sci'], 2)
+            child['carbon'] = round(child['carbon'], 2)
             """pull out value for carbon embodied, carbon operational, and duration"""
-            child['carbon-embodied'] = round(child['carbon-embodied'], 3)
-            child['carbon-operational'] = round(child['carbon-operational'], 3)
+            child['carbon-embodied'] = round(child['carbon-embodied'], 2)
+            child['carbon-operational'] = round(child['carbon-operational'], 2)
             child['duration'] = child['duration']
             """letters 7 to 10 are unique to each machine"""
             # child['machine-id'] = str(i)
@@ -182,7 +182,7 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
     for machine in machine_emissions_list:
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
-                prepared_df.loc[i, 'carbon emissions (g/Co2)'] = machine['carbon']
+                prepared_df.loc[i, 'carbon emissions (gCO2eq)'] = machine['carbon']
     """if there is no column called duration, add it to the dataframe  and fill it with the duration value"""
     if 'duration' not in prepared_df.columns:
         prepared_df.insert(2, 'duration (seconds)', pd.NA)
@@ -190,18 +190,18 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
                 prepared_df.at[i, 'duration (seconds)'] = machine['duration']
-    if 'embodied carbon (gCO2)' not in prepared_df.columns:
-        prepared_df.insert(2, 'embodied carbon (gCO2)', pd.NA)
+    if 'embodied carbon (gCO2eq)' not in prepared_df.columns:
+        prepared_df.insert(2, 'embodied carbon (gCO2eq)', pd.NA)
     for machine in machine_emissions_list:
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
-                prepared_df.loc[i, 'embodied carbon (gCO2)'] = machine['carbon-embodied']  
-    if 'operational carbon (gCO2)' not in prepared_df.columns:
-        prepared_df.insert(2, 'operational carbon (gCO2)', pd.NA)
+                prepared_df.loc[i, 'embodied carbon (gCO2eq)'] = machine['carbon-embodied']  
+    if 'operational carbon (gCO2eq)' not in prepared_df.columns:
+        prepared_df.insert(2, 'operational carbon (gCO2eq)', pd.NA)
     for machine in machine_emissions_list:
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
-                prepared_df.loc[i, 'operational carbon (gCO2)'] = machine['carbon-operational'] 
+                prepared_df.loc[i, 'operational carbon (gCO2eq)'] = machine['carbon-operational'] 
     """do the same for timestamp"""
     if 'timestamp' not in prepared_df.columns:
         prepared_df.insert(2, 'timestamp', pd.NA)
@@ -209,11 +209,10 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
                 prepared_df.loc[i, 'timestamp'] = machine['timestamp']
-
     return prepared_df
 
 
-def append_sum_row(df, column_name, label='total carbon emissions in g/co2'):
+def append_sum_row(df, column_name, label='total carbon emissions in gCO2eq'):
     """
     Sum the values in the specified column and append a new row to the DataFrame
     with the sum and a label.
@@ -249,14 +248,14 @@ def csv_to_json(csv_filename, as_json=True):
         csvFile = csv.reader(file)
         headers = next(csvFile)
     
-        # Find the index of the 'carbon emissions (g/co2)' column
-        carbon_emissions_index = headers.index('carbon emissions (g/Co2)')
+        # Find the index of the 'carbon emissions (gCO2eq)' column
+        carbon_emissions_index = headers.index('carbon emissions (gCO2eq)')
         
         for row in csvFile:
             row_key = row[0]
             
-            if row_key == 'total carbon emissions in g/co2':
-                # Include only the 'carbon emissions (g/co2)' column if it's non-zero
+            if row_key == 'total carbon emissions in gCO2eq':
+                # Include only the 'carbon emissions (gCO2eq)' column if it's non-zero
                 if row[carbon_emissions_index] != '0':
                     data_dict[row_key] = {headers[carbon_emissions_index]: row[carbon_emissions_index]}
             else:
