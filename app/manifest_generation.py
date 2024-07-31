@@ -35,7 +35,11 @@ def process_row(row, start_date, duration):
         'device/expected-lifespan': int(row['device/expected-lifespan']),
         'duration': int(duration),
         'network-intensity': float(row['network-intensity']),
-        'machine': int(1)
+        'machine': int(1),
+        'memory/thermal-design-power': row['memory/thermal-design-power'],
+        'cpu-memory/utilization': float(row['CPU_memory_average']),
+        'gpu-memory/utilization': float(row['GPU_memory_average'])
+
     }
 
 def process_csv(original_CSV_filepath, modified_CSV_filepath):
@@ -91,17 +95,11 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     
         # Load the CSV data including the headers rows
     df = pd.read_csv(original_CSV_filepath, header=None, skiprows=start_row)
-
-    # Extract the first row as headers for the first column
     first_column_header = df.iloc[0, 0]
 
     # Extract the second row as headers for columns 2 onwards
     remaining_headers = df.iloc[1]
-
-    # Combine headers
     headers = [first_column_header] + remaining_headers[1:].tolist()
-
-    # Assign the combined headers to the DataFrame
     df.columns = headers
 
     # Drop the first two rows which were used for headers
@@ -113,13 +111,13 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
         'CPU\nHighest\navg': 'CPU_average',
         'GPU\navg': 'GPU_average',
         'Total MB\nSent': 'Total_MB_Sent',
-        'Total MB\nReceived': 'Total_MB_Received'
+        'Total MB\nReceived': 'Total_MB_Received',
+        'avg': 'CPU_memory_average',
+        'MEM\navg': 'GPU_memory_average'
     }
 
     # Replace column names using the replace_dict
     df.rename(columns=replace_dict, inplace=True)
-
-    # print(df)
     
     df['machine-family'] = ''
     df['max-cpu-wattage'] = ''
@@ -131,6 +129,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     df['device/expected-lifespan'] = 157788000
     df['time-reserved'] = 157788000
     df['network-intensity'] = 0.000124
+    df['memory/thermal-design-power'] = ''
 
 
     # Iterate through the DataFrame and update the 'machine-family' column based on 'cores'
@@ -142,6 +141,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             df.at[index, 'max-gpu-wattage'] = 70
             df.at[index, 'cpu/thermal-design-power'] = 90
             df.at[index, 'device/emissions-embodied'] = 370.14
+            df.at[index, 'memory/thermal-design-power'] = 17
         elif row['cores'] == '28':
             df.at[index, 'cores'] = 28
             df.at[index, 'machine-family'] = 'Z4R G4'
@@ -149,8 +149,9 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             df.at[index, 'max-gpu-wattage'] = 230
             df.at[index, 'cpu/thermal-design-power'] = 165
             df.at[index, 'device/emissions-embodied'] = 306
+            df.at[index, 'memory/thermal-design-power'] = 48
         if row['GPU_average'] == '0':
-            df.at[index, 'GPU_average'] = 1
+            df.at[index, 'GPU_average'] = 0.1
             
          
     # print(df)
@@ -164,7 +165,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             continue
         template = process_row(row, start_date, duration)
         templates.append(template)
-
+    print(templates)
     # print(templates)
     
     # Output the modified DataFrame to a new CSV file
@@ -221,7 +222,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'numerator': "gpu/utilization",
                     'denominator': 100,
                     'output': "gpu-utilization"
-                }
+                    }
                 },
                 'gpu-utilisation-to-wattage': {
                     'method': 'Multiply',
@@ -279,7 +280,67 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'global-config': {
                         'numerator': "cpu-wattage-times-duration",
                         'denominator': 3600000,
-                        'output': "cpu-energy-raw"
+                        'output': "cpu/energy"
+                    }
+                },
+                'cpu-memory-utilisation-percentage-to-decimal': {
+                    'method': 'Divide',
+                    'path': 'builtin',
+                    'global-config': {
+                        'numerator': "cpu-memory/utilization",
+                        'denominator': 100,
+                        'output': "cpu-memory-utilization"
+                    }
+                },
+                'gpu-memory-utilisation-percentage-to-decimal': {
+                    'method': 'Divide',
+                    'path': 'builtin',
+                    'global-config': {
+                        'numerator': "gpu-memory/utilization",
+                        'denominator': 100,
+                        'output': "gpu-memory-utilization"
+                    }
+                },
+                'add-cpu-gpu-memory-utilization': {
+                    'method': 'Sum',
+                    'path': 'builtin',
+                    'global-config': {
+                        'input-parameters': ["cpu-memory-utilization", "gpu-memory-utilization"],
+                        'output-parameter': "cpu-gpu-combined-memory-utilization"
+                        }
+                },
+                'average-cpu-gpu-memory-utilization': {
+                    'method': 'Divide',
+                    'path': 'builtin',
+                    'global-config': {
+                        'numerator': "cpu-gpu-combined-memory-utilization",
+                        'denominator': 2,
+                        'output': "cpu-gpu-average-memory-utilization"
+                    }
+                },
+                'cpu-gpu-average-memory-utilization-to-wattage': {
+                    'method': 'Multiply',
+                    'path': 'builtin',
+                    'global-config': {
+                        'input-parameters': ["cpu-gpu-average-memory-utilization", "memory/thermal-design-power"],
+                        'output-parameter': "memory-wattage"
+                    }
+                },
+                'memory-wattage-times-duration': {
+                    'method': 'Multiply',
+                    'path': 'builtin',
+                    'global-config': {
+                        'input-parameters': ["memory-wattage", "duration"],
+                        'output-parameter': "memory-wattage-times-duration"
+                    }
+                },
+                'memory-wattage-to-energy-kwh': {
+                    'method': 'Divide',
+                    'path': 'builtin',
+                    'global-config': {
+                        'numerator': "memory-wattage-times-duration",
+                        'denominator': 3600000,
+                        'output': "memory/energy"
                     }
                 },
                 'calculate-vcpu-ratio': {
@@ -337,7 +398,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'method': 'Sum',
                     'path': 'builtin',
                     'global-config': {
-                        'input-parameters': ["cpu/energy", "gpu/energy", "network/energy"],
+                        'input-parameters': ["cpu/energy", "gpu/energy", "memory/energy"],
                         'output-parameter': "energy"
                     }
                 },
@@ -385,12 +446,19 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
         'cpu-utilisation-to-wattage',
         'cpu-wattage-times-duration',
         'cpu-wattage-to-energy-kwh',
-        'calculate-vcpu-ratio',
-        'correct-cpu-energy-for-vcpu-ratio',
-        'energy-sent',
-        'energy-received',
-        'sum-network-energy-joules',
-        'total-network-energy-to-kwh',
+        'cpu-memory-utilisation-percentage-to-decimal',
+        'gpu-memory-utilisation-percentage-to-decimal',
+        'add-cpu-gpu-memory-utilization',
+        'average-cpu-gpu-memory-utilization',
+        'cpu-gpu-average-memory-utilization-to-wattage',
+        'memory-wattage-times-duration',
+        'memory-wattage-to-energy-kwh',
+        # 'calculate-vcpu-ratio',
+        # 'correct-cpu-energy-for-vcpu-ratio',
+        # 'energy-sent',
+        # 'energy-received',
+        # 'sum-network-energy-joules',
+        # 'total-network-energy-to-kwh',
         'sum-energy-components',
         'sci-embodied',
         'operational-carbon',

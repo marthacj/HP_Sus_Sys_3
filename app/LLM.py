@@ -355,40 +355,45 @@ def embed_sentences(sentences, model):
 
 
 def generate_question(index, embeddings, model, sentences, questions):
-    for question in questions:
-        print(question.strip())
-    try:
-        # Get user input for the question index
-        user_input = input("\n\nEnter a question index (0-6): ")
+    while True:
+        for i, question in enumerate(questions):
+            print(f"{i}: {question.strip()}")
         
-        # Validate and convert user input to an integer
-        try:
-            question_index = int(user_input)
-            if question_index < 0 or question_index > 6:
-                raise ValueError("Index out of range. Please enter a number between 0 and 6.")
-        except ValueError as ve:
-            print(ve)
-            return
-        
-        # Get the question based on the user input
-        q = questions[question_index]
-        q_embedding = model.encode(q)
-        q_embedding = q_embedding.reshape(1, -1)
-        
-        # Calculate top_k based on 25% of the number of sentences
-        top_k = int(0.25 * len(sentences))
-        distances, indices = index.search(q_embedding, top_k)
-        
-        prompt = "Here is your context for a question I will ask you:\n"
-        for ind in indices[0]:
-            prompt += f"{sentences[ind]}\n"
-        
-        prompt += f"Here is a new question for you to answer:\n{q}"
+        print("\nEnter a question index (0-6) or type 'bye' to exit:")
+        user_input = input().strip().lower()
+        if user_input == 'bye':
+            print("Goodbye!")
+            break
 
-        # print("prompt:", prompt)
-        
-        response = send_prompt(llm, prompt, interface="ollama")
-        print(response)
-        
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        try:            
+            # Validate and convert user input to an integer
+            try:
+                question_index = int(user_input)
+                if question_index < 0 or question_index > 6:
+                    raise ValueError("Index out of range. Please enter a number between 0 and 6.")
+            except ValueError as ve:
+                print(ve)
+                return
+            
+            # Get the question based on the user input
+            q = questions[question_index]
+            q_embedding = model.encode(q)
+            q_embedding = q_embedding.reshape(1, -1)
+            
+            # Calculate top_k based on 25% of the number of sentences
+            top_k = int(0.25 * len(sentences))
+            distances, indices = index.search(q_embedding, top_k)
+            
+            prompt = "Here is your context for a question I will ask you:\n"
+            for ind in indices[0]:
+                prompt += f"{sentences[ind]}\n"
+            
+            prompt += f"Here is a new question for you to answer:\n{q}"
+
+            # print("prompt:", prompt)
+            
+            response = send_prompt(llm, prompt, interface="ollama")
+            print(response)
+            
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")

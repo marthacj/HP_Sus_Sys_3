@@ -94,7 +94,59 @@ initialize:
       global-config:
         numerator: cpu-wattage-times-duration
         denominator: 3600000
-        output: cpu-energy-raw
+        output: cpu/energy
+    cpu-memory-utilisation-percentage-to-decimal:
+      method: Divide
+      path: builtin
+      global-config:
+        numerator: cpu-memory/utilization
+        denominator: 100
+        output: cpu-memory-utilization
+    gpu-memory-utilisation-percentage-to-decimal:
+      method: Divide
+      path: builtin
+      global-config:
+        numerator: gpu-memory/utilization
+        denominator: 100
+        output: gpu-memory-utilization
+    add-cpu-gpu-memory-utilization:
+      method: Sum
+      path: builtin
+      global-config:
+        input-parameters:
+        - cpu-memory-utilization
+        - gpu-memory-utilization
+        output-parameter: cpu-gpu-combined-memory-utilization
+    average-cpu-gpu-memory-utilization:
+      method: Divide
+      path: builtin
+      global-config:
+        numerator: cpu-gpu-combined-memory-utilization
+        denominator: 2
+        output: cpu-gpu-average-memory-utilization
+    cpu-gpu-average-memory-utilization-to-wattage:
+      method: Multiply
+      path: builtin
+      global-config:
+        input-parameters:
+        - cpu-gpu-average-memory-utilization
+        - memory/thermal-design-power
+        output-parameter: memory-wattage
+    memory-wattage-times-duration:
+      method: Multiply
+      path: builtin
+      global-config:
+        input-parameters:
+        - memory-wattage
+        - duration
+        output-parameter: memory-wattage-times-duration
+    memory-wattage-to-energy-kwh:
+      method: Divide
+      path: builtin
+      global-config:
+        numerator: memory-wattage-times-duration
+        denominator: 3600000
+        output: memory/energy
     calculate-vcpu-ratio:
       method: Divide
       path: builtin
@@ -147,7 +199,7 @@ initialize:
         input-parameters:
         - cpu/energy
         - gpu/energy
-        - network/energy
+        - memory/energy
         output-parameter: energy
     sci-embodied:
       method: SciEmbodied
@@ -186,12 +238,13 @@ tree:
       - cpu-utilisation-to-wattage
       - cpu-wattage-times-duration
       - cpu-wattage-to-energy-kwh
-      - calculate-vcpu-ratio
-      - correct-cpu-energy-for-vcpu-ratio
-      - energy-sent
-      - energy-received
-      - sum-network-energy-joules
-      - total-network-energy-to-kwh
+      - cpu-memory-utilisation-percentage-to-decimal
+      - gpu-memory-utilisation-percentage-to-decimal
+      - add-cpu-gpu-memory-utilization
+      - average-cpu-gpu-memory-utilization
+      - cpu-gpu-average-memory-utilization-to-wattage
+      - memory-wattage-times-duration
+      - memory-wattage-to-energy-kwh
       - sum-energy-components
       - sci-embodied
       - operational-carbon
@@ -209,7 +262,7 @@ tree:
         vcpus-allocated: 24
         cpu/utilization: 0.1068956176778499
         max-cpu-wattage: 280
-        gpu/utilization: 1.0
+        gpu/utilization: 0.1
         max-gpu-wattage: 70
         total-MB-sent: 832.1846683778874
         total-MB-received: 1446.804229656907
@@ -221,6 +274,9 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 17
+        cpu-memory/utilization: 11.83482979649345
+        gpu-memory/utilization: 28.89076923076918
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306
         cpu/thermal-design-power: 165
@@ -240,6 +296,9 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 48
+        cpu-memory/utilization: 7.021152895870969
+        gpu-memory/utilization: 28.42974358974361
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370.14
         cpu/thermal-design-power: 90
@@ -259,6 +318,9 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 17
+        cpu-memory/utilization: 21.61179130912394
+        gpu-memory/utilization: 15.93538461538465
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306
         cpu/thermal-design-power: 165
@@ -278,6 +340,9 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 48
+        cpu-memory/utilization: 6.579248898173702
+        gpu-memory/utilization: 30.29943502824854
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370.14
         cpu/thermal-design-power: 90
@@ -297,6 +362,9 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 17
+        cpu-memory/utilization: 18.23871667406782
+        gpu-memory/utilization: 28.67025641025644
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370.14
         cpu/thermal-design-power: 90
@@ -316,6 +384,9 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 17
+        cpu-memory/utilization: 18.70434439128427
+        gpu-memory/utilization: 29.48666666666664
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306
         cpu/thermal-design-power: 165
@@ -335,6 +406,9 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 48
+        cpu-memory/utilization: 9.854467404098585
+        gpu-memory/utilization: 18.86659825551568
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370.14
         cpu/thermal-design-power: 90
@@ -354,3 +428,6 @@ tree:
         duration: 216000
         network-intensity: 0.000124
         machine: 1
+        memory/thermal-design-power: 17
+        cpu-memory/utilization: 11.20676467407934
+        gpu-memory/utilization: 29.03225806451613
