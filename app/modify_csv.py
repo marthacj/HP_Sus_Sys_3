@@ -421,7 +421,7 @@ if __name__ == '__main__':
     # Define the input and output file paths
     original_CSV_filepath = csv_file
     modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
-    manifest_filepath = r'C:\Users\martha.calder-jones\OneDrive - University College London\UCL_comp_sci\Sustainable_Systems_3\HP_Sus_Sys_3\manifest1\NEW_z2_G4_Sci.yaml'
+    manifest_filepath = r'manifest1\NEW_z2_G4_Sci.yaml'
 
     modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
     # Generate the manifest file with the extracted duration value
