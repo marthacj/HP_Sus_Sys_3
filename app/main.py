@@ -74,7 +74,7 @@ if __name__ == '__main__':
 )
     llm.close() 
     # taking in our raw 'uploaded xlsx file
-    excel_file = r'data\1038-0610-0614-evening.xlsx'
+    excel_file = r'data\1038-0610-0614-day-larger-figures-test.xlsx'
     # taking in the output yaml file with the carbon emissions data from IF
     yaml_file = r'manifest1\outputs\z2_G4_Sci_Output.yaml'
 
@@ -90,10 +90,12 @@ if __name__ == '__main__':
     merged_df = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
-
+    print(merged_df.columns)
     # Save the merged DataFrame to a CSV file 
     merged_df.to_csv('embeddings\merged_df.csv', index=False)
-
+    # def round_floats(x):
+    #     return round(x, 2) if isinstance(x, float) else x
+    # merged_df = merged_df.applymap(round_floats)
     csv_filename = r'embeddings\merged_df.csv'
 
     # convert the csv file to a json file

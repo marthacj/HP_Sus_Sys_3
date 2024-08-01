@@ -1,8 +1,8 @@
 ld71r16u13ws:
   inputs:
-  - cpu-memory/utilization: 50
+  - cpu-memory/utilization: 6.579248898173702
     cpu/thermal-design-power: 165
-    cpu/utilization: 36
+    cpu/utilization: 0.274482596921672
     device/emissions-embodied: 306000
     device/expected-lifespan: 157788000
     duration: 216000
@@ -23,23 +23,23 @@ ld71r16u13ws:
     vcpus-allocated: 28
     vcpus-total: 28
   outputs:
-  - carbon: 565.2494021723517
+  - carbon: 436.224765970449
     carbon-embodied: 418.8911704312115
-    carbon-operational: 146.35823174114017
-    cpu-gpu-average-memory-utilization: 0.4014971751412427
-    cpu-gpu-combined-memory-utilization: 0.8029943502824854
-    cpu-memory-utilization: 0.5
-    cpu-memory/utilization: 50
-    cpu-utilization: 0.36
-    cpu-wattage: 59.4
-    cpu-wattage-times-duration: 12830400
-    cpu/energy: 3.564
+    carbon-operational: 17.333595539237546
+    cpu-gpu-average-memory-utilization: 0.1843934196321112
+    cpu-gpu-combined-memory-utilization: 0.3687868392642224
+    cpu-memory-utilization: 0.06579248898173702
+    cpu-memory/utilization: 6.579248898173702
+    cpu-utilization: 0.0027448259692167197
+    cpu-wattage: 0.45289628492075873
+    cpu-wattage-times-duration: 97825.59754288389
+    cpu/energy: 0.027173777095245523
     cpu/thermal-design-power: 165
-    cpu/utilization: 36
+    cpu/utilization: 0.274482596921672
     device/emissions-embodied: 306000
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 4.721233281972264
+    energy: 0.5591482432012111
     gpu-memory-utilization: 0.3029943502824854
     gpu-memory/utilization: 30.29943502824854
     gpu-utilization: 6.676938880328712e-05
@@ -53,12 +53,12 @@ ld71r16u13ws:
     machine-code: ld71r16u13ws
     max-cpu-wattage: 1400
     max-gpu-wattage: 230
-    memory-wattage: 19.27186440677965
-    memory-wattage-times-duration: 4162722.7118644044
-    memory/energy: 1.156311864406779
+    memory-wattage: 8.850884142341338
+    memory-wattage-times-duration: 1911790.974745729
+    memory/energy: 0.5310530485404803
     memory/thermal-design-power: 48
     network-intensity: 0.000124
-    sci: 565.2494021723517
+    sci: 436.224765970449
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 2707.836391279287
@@ -69,7 +69,7 @@ ld71r16u14ws:
   inputs:
   - cpu-memory/utilization: 9.854467404098585
     cpu/thermal-design-power: 165
-    cpu/utilization: 29
+    cpu/utilization: 0.166101130945421
     device/emissions-embodied: 306000
     device/expected-lifespan: 157788000
     duration: 216000
@@ -90,23 +90,23 @@ ld71r16u14ws:
     vcpus-allocated: 28
     vcpus-total: 28
   outputs:
-  - carbon: 520.7330088876869
+  - carbon: 432.2417732585584
     carbon-embodied: 418.8911704312115
-    carbon-operational: 101.8418384564754
+    carbon-operational: 13.350602827346908
     cpu-gpu-average-memory-utilization: 0.14360532829807132
     cpu-gpu-combined-memory-utilization: 0.28721065659614264
     cpu-memory-utilization: 0.09854467404098585
     cpu-memory/utilization: 9.854467404098585
-    cpu-utilization: 0.29
-    cpu-wattage: 47.849999999999994
-    cpu-wattage-times-duration: 10335599.999999998
-    cpu/energy: 2.8709999999999996
+    cpu-utilization: 0.00166101130945421
+    cpu-wattage: 0.2740668660599447
+    cpu-wattage-times-duration: 59198.44306894805
+    cpu/energy: 0.01644401196359668
     cpu/thermal-design-power: 165
-    cpu/utilization: 29
+    cpu/utilization: 0.166101130945421
     device/emissions-embodied: 306000
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 3.2852205953701743
+    energy: 0.4306646073337712
     gpu-memory-utilization: 0.1886659825551568
     gpu-memory/utilization: 18.86659825551568
     gpu-utilization: 4.617752693689071e-05
@@ -125,7 +125,7 @@ ld71r16u14ws:
     memory/energy: 0.41358334549844544
     memory/thermal-design-power: 48
     network-intensity: 0.000124
-    sci: 520.7330088876869
+    sci: 432.2417732585584
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 2309.490603607732
@@ -136,7 +136,7 @@ ld71r16u15ws:
   inputs:
   - cpu-memory/utilization: 7.021152895870969
     cpu/thermal-design-power: 165
-    cpu/utilization: 32
+    cpu/utilization: 0.1642084701261979
     device/emissions-embodied: 306000
     device/expected-lifespan: 157788000
     duration: 216000
@@ -157,23 +157,23 @@ ld71r16u15ws:
     vcpus-allocated: 28
     vcpus-total: 28
   outputs:
-  - carbon: 532.9485829300821
+  - carbon: 435.2445387248994
     carbon-embodied: 418.8911704312115
-    carbon-operational: 114.05741249887066
+    carbon-operational: 16.353368293687957
     cpu-gpu-average-memory-utilization: 0.1772544824280729
     cpu-gpu-combined-memory-utilization: 0.3545089648561458
     cpu-memory-utilization: 0.07021152895870969
     cpu-memory/utilization: 7.021152895870969
-    cpu-utilization: 0.32
-    cpu-wattage: 52.800000000000004
-    cpu-wattage-times-duration: 11404800
-    cpu/energy: 3.168
+    cpu-utilization: 0.001642084701261979
+    cpu-wattage: 0.27094397570822654
+    cpu-wattage-times-duration: 58523.89875297693
+    cpu/energy: 0.016256638542493592
     cpu/thermal-design-power: 165
-    cpu/utilization: 32
+    cpu/utilization: 0.1642084701261979
     device/emissions-embodied: 306000
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 3.679271370931312
+    energy: 0.5275280094738051
     gpu-memory-utilization: 0.2842974358974361
     gpu-memory/utilization: 28.42974358974361
     gpu-utilization: 5.641025641025641e-05
@@ -192,7 +192,7 @@ ld71r16u15ws:
     memory/energy: 0.51049290939285
     memory/thermal-design-power: 48
     network-intensity: 0.000124
-    sci: 532.9485829300821
+    sci: 435.2445387248994
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 1529.862472338883
@@ -203,7 +203,7 @@ ld71r18u44bws:
   inputs:
   - cpu-memory/utilization: 18.23871667406782
     cpu/thermal-design-power: 90
-    cpu/utilization: 35
+    cpu/utilization: 0.2656404420711027
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
@@ -224,23 +224,23 @@ ld71r18u44bws:
     vcpus-allocated: 24
     vcpus-total: 24
   outputs:
-  - carbon: 572.918689203785
+  - carbon: 514.773371303812
     carbon-embodied: 506.69404517453796
-    carbon-operational: 66.22464402924705
+    carbon-operational: 8.079326129274074
     cpu-gpu-average-memory-utilization: 0.23454486542162128
     cpu-gpu-combined-memory-utilization: 0.46908973084324257
     cpu-memory-utilization: 0.1823871667406782
     cpu-memory/utilization: 18.23871667406782
-    cpu-utilization: 0.35
-    cpu-wattage: 31.499999999999996
-    cpu-wattage-times-duration: 6803999.999999999
-    cpu/energy: 1.8899999999999997
+    cpu-utilization: 0.002656404420711027
+    cpu-wattage: 0.23907639786399243
+    cpu-wattage-times-duration: 51640.501938622365
+    cpu/energy: 0.014344583871839546
     cpu/thermal-design-power: 90
-    cpu/utilization: 35
+    cpu/utilization: 0.2656404420711027
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 2.1362788396531305
+    energy: 0.26062342352497014
     gpu-memory-utilization: 0.2867025641025644
     gpu-memory/utilization: 28.67025641025644
     gpu-utilization: 0.001676923076923068
@@ -259,7 +259,7 @@ ld71r18u44bws:
     memory/energy: 0.23923576273005373
     memory/thermal-design-power: 17
     network-intensity: 0.000124
-    sci: 572.918689203785
+    sci: 514.773371303812
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 17003.17031116769
@@ -268,9 +268,9 @@ ld71r18u44bws:
     vcpus-total: 24
 ld71r18u44cws:
   inputs:
-  - cpu-memory/utilization: 63
+  - cpu-memory/utilization: 18.70434439128427
     cpu/thermal-design-power: 90
-    cpu/utilization: 89
+    cpu/utilization: 0.1215987597896913
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
@@ -291,23 +291,23 @@ ld71r18u44cws:
     vcpus-allocated: 24
     vcpus-total: 24
   outputs:
-  - carbon: 670.310867174538
+  - carbon: 514.525280346688
     carbon-embodied: 506.69404517453796
-    carbon-operational: 163.61682199999998
-    cpu-gpu-average-memory-utilization: 0.4624333333333332
-    cpu-gpu-combined-memory-utilization: 0.9248666666666664
-    cpu-memory-utilization: 0.63
-    cpu-memory/utilization: 63
-    cpu-utilization: 0.89
-    cpu-wattage: 80.1
-    cpu-wattage-times-duration: 17301600
-    cpu/energy: 4.806
+    carbon-operational: 7.831235172149982
+    cpu-gpu-average-memory-utilization: 0.24095505528975453
+    cpu-gpu-combined-memory-utilization: 0.48191011057950905
+    cpu-memory-utilization: 0.1870434439128427
+    cpu-memory/utilization: 18.70434439128427
+    cpu-utilization: 0.001215987597896913
+    cpu-wattage: 0.10943888381072217
+    cpu-wattage-times-duration: 23638.79890311599
+    cpu/energy: 0.0065663330286433305
     cpu/thermal-design-power: 90
-    cpu/utilization: 89
+    cpu/utilization: 0.1215987597896913
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 5.277962
+    energy: 0.25262048942419296
     gpu-memory-utilization: 0.2948666666666664
     gpu-memory/utilization: 29.48666666666664
     gpu-utilization: 6.666666666666666e-05
@@ -321,12 +321,12 @@ ld71r18u44cws:
     machine-code: ld71r18u44cws
     max-cpu-wattage: 280
     max-gpu-wattage: 70
-    memory-wattage: 7.861366666666664
-    memory-wattage-times-duration: 1698055.1999999995
-    memory/energy: 0.4716819999999999
+    memory-wattage: 4.096235939925827
+    memory-wattage-times-duration: 884786.9630239786
+    memory/energy: 0.24577415639554961
     memory/thermal-design-power: 17
     network-intensity: 0.000124
-    sci: 670.310867174538
+    sci: 514.525280346688
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 2480.107864107751
@@ -335,9 +335,9 @@ ld71r18u44cws:
     vcpus-total: 24
 ld71r18u44dws:
   inputs:
-  - cpu-memory/utilization: 30
+  - cpu-memory/utilization: 11.83482979649345
     cpu/thermal-design-power: 90
-    cpu/utilization: 35
+    cpu/utilization: 0.1068956176778499
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
@@ -358,23 +358,23 @@ ld71r18u44dws:
     vcpus-allocated: 24
     vcpus-total: 24
   outputs:
-  - carbon: 574.7248757899225
+  - carbon: 513.4419056447409
     carbon-embodied: 506.69404517453796
-    carbon-operational: 68.0308306153846
-    cpu-gpu-average-memory-utilization: 0.2944538461538459
-    cpu-gpu-combined-memory-utilization: 0.5889076923076918
-    cpu-memory-utilization: 0.3
-    cpu-memory/utilization: 30
-    cpu-utilization: 0.35
-    cpu-wattage: 31.499999999999996
-    cpu-wattage-times-duration: 6803999.999999999
-    cpu/energy: 1.8899999999999997
+    carbon-operational: 6.7478604702029426
+    cpu-gpu-average-memory-utilization: 0.20362799513631316
+    cpu-gpu-combined-memory-utilization: 0.4072559902726263
+    cpu-memory-utilization: 0.1183482979649345
+    cpu-memory/utilization: 11.83482979649345
+    cpu-utilization: 0.001068956176778499
+    cpu-wattage: 0.09620605591006491
+    cpu-wattage-times-duration: 20780.50807657402
+    cpu/energy: 0.005772363354603895
     cpu/thermal-design-power: 90
-    cpu/utilization: 35
+    cpu/utilization: 0.1068956176778499
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 2.1945429230769227
+    energy: 0.2176729183936433
     gpu-memory-utilization: 0.2889076923076918
     gpu-memory/utilization: 28.89076923076918
     gpu-utilization: 0.001
@@ -388,12 +388,12 @@ ld71r18u44dws:
     machine-code: ld71r18u44dws
     max-cpu-wattage: 280
     max-gpu-wattage: 70
-    memory-wattage: 5.00571538461538
-    memory-wattage-times-duration: 1081234.5230769222
-    memory/energy: 0.30034292307692284
+    memory-wattage: 3.461675917317324
+    memory-wattage-times-duration: 747721.998140542
+    memory/energy: 0.20770055503903942
     memory/thermal-design-power: 17
     network-intensity: 0.000124
-    sci: 574.7248757899225
+    sci: 513.4419056447409
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 1446.804229656907
@@ -404,7 +404,7 @@ ld71r18u44ews:
   inputs:
   - cpu-memory/utilization: 11.20676467407934
     cpu/thermal-design-power: 90
-    cpu/utilization: 40
+    cpu/utilization: 1.009326705257337
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
@@ -425,23 +425,23 @@ ld71r18u44ews:
     vcpus-allocated: 24
     vcpus-total: 24
   outputs:
-  - carbon: 581.1231073967826
+  - carbon: 515.8527203013834
     carbon-embodied: 506.69404517453796
-    carbon-operational: 74.42906222224467
+    carbon-operational: 9.158675126845452
     cpu-gpu-average-memory-utilization: 0.20119511369297735
     cpu-gpu-combined-memory-utilization: 0.4023902273859547
     cpu-memory-utilization: 0.11206764674079339
     cpu-memory/utilization: 11.20676467407934
-    cpu-utilization: 0.4
-    cpu-wattage: 36
-    cpu-wattage-times-duration: 7776000
-    cpu/energy: 2.16
+    cpu-utilization: 0.010093267052573369
+    cpu-wattage: 0.9083940347316032
+    cpu-wattage-times-duration: 196213.1115020263
+    cpu/energy: 0.054503642083896194
     cpu/thermal-design-power: 90
-    cpu/utilization: 40
+    cpu/utilization: 1.009326705257337
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 2.4009374910401506
+    energy: 0.29544113312404685
     gpu-memory-utilization: 0.2903225806451613
     gpu-memory/utilization: 29.03225806451613
     gpu-utilization: 0.008504398826979469
@@ -460,7 +460,7 @@ ld71r18u44ews:
     memory/energy: 0.20521901596683692
     memory/thermal-design-power: 17
     network-intensity: 0.000124
-    sci: 581.1231073967826
+    sci: 515.8527203013834
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 360.641580261303
@@ -471,7 +471,7 @@ ld71r18u44fws:
   inputs:
   - cpu-memory/utilization: 21.61179130912394
     cpu/thermal-design-power: 90
-    cpu/utilization: 85
+    cpu/utilization: 1.408925411333655
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
@@ -492,23 +492,23 @@ ld71r18u44fws:
     vcpus-allocated: 24
     vcpus-total: 24
   outputs:
-  - carbon: 657.3953890728181
+  - carbon: 517.4639302113907
     carbon-embodied: 506.69404517453796
-    carbon-operational: 150.70134389828021
+    carbon-operational: 10.76988503685275
     cpu-gpu-average-memory-utilization: 0.18773587962254296
     cpu-gpu-combined-memory-utilization: 0.3754717592450859
     cpu-memory-utilization: 0.2161179130912394
     cpu-memory/utilization: 21.61179130912394
-    cpu-utilization: 0.85
-    cpu-wattage: 76.5
-    cpu-wattage-times-duration: 16524000
-    cpu/energy: 4.59
+    cpu-utilization: 0.01408925411333655
+    cpu-wattage: 1.2680328702002894
+    cpu-wattage-times-duration: 273895.0999632625
+    cpu/energy: 0.07608197221201736
     cpu/thermal-design-power: 90
-    cpu/utilization: 85
+    cpu/utilization: 1.408925411333655
     device/emissions-embodied: 370140
     device/expected-lifespan: 157788000
     duration: 216000
-    energy: 4.861333674138072
+    energy: 0.3474156463500887
     gpu-memory-utilization: 0.1593538461538465
     gpu-memory/utilization: 15.93538461538465
     gpu-utilization: 0.019010256410256568
@@ -527,7 +527,7 @@ ld71r18u44fws:
     memory/energy: 0.1914905972149938
     memory/thermal-design-power: 17
     network-intensity: 0.000124
-    sci: 657.3953890728181
+    sci: 517.4639302113907
     time-reserved: 157788000
     timestamp: '2024-06-09T23:00:00.000Z'
     total-MB-received: 3770.940366416131

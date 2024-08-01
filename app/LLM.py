@@ -70,13 +70,13 @@ def prepare_excel_file(excel_file):
         'Total RAM\n(GB)': 'total RAM GB (memory % utilization)',
         'max': 'maximum (memory % utilization)',
         'avg': 'average (memory % utilization)',
-        '#oc > 80%': 'number of occurrences over 80% (memory % utilization)',
-        'GPU\nmin': 'graphics processing unit minimum (NVIDIA % utilization)', 
-        'GPU\nmax': 'graphics processing unit maximum (NVIDIA % utilization)',
+        '#oc > 80%': 'number of occurrences over 80% (gpu memory % utilization)',
+        # 'GPU\nmin': 'graphics processing unit minimum (NVIDIA % utilization)', 
+        'GPU\nmax': 'graphics processing unit maximum (NVIDIA gpu % utilization)',
         'Host Name': 'Machine',
-        'MEM\nmax': 'graphics processing unit memory maximum (NVIDIA % utilization)', 
-        'MEM\navg': 'graphics processing unit memory average (NVIDIA % utilization)', 
-        'MEM\n#oc > 80%': 'GPU memory number of occurrences over 80% (NVIDIA % utilization)',
+        # 'MEM\nmax': 'graphics processing unit memory maximum (NVIDIA gpu % utilization)', 
+        # 'MEM\navg': 'graphics processing unit memory average (NVIDIA gpu % utilization)', 
+        # 'MEM\n#oc > 80%': 'GPU memory number of occurrences over 80% (NVIDIA % utilization)',
         'Model': 'model',
         'Machine': 'machine'
     }
@@ -93,13 +93,17 @@ def prepare_excel_file(excel_file):
         'tx \n% packet loss\nmin', 'tx \n% packet loss\nmax', 'tx \n% packet loss\navg', 'Read MB\nmin', 'Read MB\nmax',
         'Read MB\navg', 'Write MB\nmin', 'Write MB\nmax', 'Write MB\navg', 'Read IOPs\nmin', 'Read IOPs\nmax',
         'Read IOPs\navg', 'Write IOPs\nmin', 'Write IOPs\nmax', 'Write IOPs\navg', 'Free MB\nmin', 'Free MB\nmax',
-        'Free MB\navg', 'min', 'MEM\nmin'
+        'Free MB\navg', 'min', 'MEM\nmin', 'GPU\nmin', 'MEM\n#oc > 80%', 'MEM\nmax', 'MEM\navg'
     ]
 
-
+    # Drop the columns that are not needed 
     df.drop(columns=drop_names, inplace=True)
     # now drop the last three rows in the df
     df.drop(df.tail(3).index, inplace=True)
+
+    # for testing with all columns, for fairness must also round those cols
+    # df[drop_names] = df[drop_names].apply(lambda x: round(x, 3))
+
 
 
     """round the values in the column GPU average (NVIDIA % Utilization) to 3 decimal places"""
@@ -108,6 +112,15 @@ def prepare_excel_file(excel_file):
     df['core average (central processing unit % utilization)'] = df['core average (central processing unit % utilization)'].apply(lambda x: round(x, 3))
     df['core maximum (central processing unit % utilization)'] = df['core maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
     df['central processing unit Maximum (central processing unit % utilization)'] = df['central processing unit Maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
+    df['total MB sent (All Network Traffic)'] = df['total MB sent (All Network Traffic)'].apply(lambda x: round(x, 3))
+    df['total MB received (All Network Traffic)'] = df['total MB received (All Network Traffic)'].apply(lambda x: round(x, 3))
+    df['total RAM GB (memory % utilization)'] = df['total RAM GB (memory % utilization)'].apply(lambda x: round(x, 3))
+    df['maximum (memory % utilization)'] = df['maximum (memory % utilization)'].apply(lambda x: round(x, 3))
+    df['average (memory % utilization)'] = df['average (memory % utilization)'].apply(lambda x: round(x, 3))
+    # df['graphics processing unit minimum (NVIDIA % utilization)'] = df['graphics processing unit minimum (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
+    df['graphics processing unit maximum (NVIDIA gpu % utilization)'] = df['graphics processing unit maximum (NVIDIA gpu % utilization)'].apply(lambda x: round(x, 3))
+    # df['graphics processing unit memory maximum (NVIDIA % utilization)'] = df['graphics processing unit memory maximum (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
+    # df['graphics processing unit memory average (NVIDIA % utilization)'] = df['graphics processing unit memory average (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
     return df
  
 
@@ -380,16 +393,16 @@ def generate_question(index, embeddings, model, sentences, questions):
             q_embedding = q_embedding.reshape(1, -1)
             
             # Calculate top_k based on 25% of the number of sentences
-            top_k = int(0.25 * len(sentences))
+            top_k = int(0.15 * len(sentences))
             distances, indices = index.search(q_embedding, top_k)
             
             prompt = "Here is your context for a question I will ask you:\n"
             for ind in indices[0]:
                 prompt += f"{sentences[ind]}\n"
             
-            prompt += f"Here is a new question for you to answer:\n{q}"
+            prompt += f"There are 8 machines in this dataset. Here is a new question for you to answer:\n{q}"
 
-            # print("prompt:", prompt)
+            print("prompt:", prompt)
             
             response = send_prompt(llm, prompt, interface="ollama")
             print(response)

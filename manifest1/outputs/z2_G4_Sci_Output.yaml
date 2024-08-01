@@ -238,7 +238,7 @@ execution:
     os: "Microsoft Windows 10 Enterprise\r"
     os-version: 10.0.19045 N/A Build 19045
     node-version: 20.14.0
-    date-time: 2024-07-31T17:40:26.951Z (UTC)
+    date-time: 2024-08-01T16:32:38.118Z (UTC)
     dependencies: []
   status: success
 tree:
@@ -278,7 +278,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 35
+              cpu/utilization: 0.1068956176778499
               max-cpu-wattage: 280
               gpu/utilization: 0.1
               max-gpu-wattage: 70
@@ -293,7 +293,7 @@ tree:
               network-intensity: 0.000124
               machine: 1
               memory/thermal-design-power: 17
-              cpu-memory/utilization: 30
+              cpu-memory/utilization: 11.83482979649345
               gpu-memory/utilization: 28.89076923076918
           outputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -301,7 +301,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 35
+              cpu/utilization: 0.1068956176778499
               max-cpu-wattage: 280
               gpu/utilization: 0.1
               max-gpu-wattage: 70
@@ -316,28 +316,28 @@ tree:
               network-intensity: 0.000124
               machine: 1
               memory/thermal-design-power: 17
-              cpu-memory/utilization: 30
+              cpu-memory/utilization: 11.83482979649345
               gpu-memory/utilization: 28.89076923076918
               gpu-utilization: 0.001
               gpu-wattage: 0.07
               gpu-wattage-times-duration: 15120.000000000002
               gpu/energy: 0.004200000000000001
-              cpu-utilization: 0.35
-              cpu-wattage: 31.499999999999996
-              cpu-wattage-times-duration: 6803999.999999999
-              cpu/energy: 1.8899999999999997
-              cpu-memory-utilization: 0.3
+              cpu-utilization: 0.001068956176778499
+              cpu-wattage: 0.09620605591006491
+              cpu-wattage-times-duration: 20780.50807657402
+              cpu/energy: 0.005772363354603895
+              cpu-memory-utilization: 0.1183482979649345
               gpu-memory-utilization: 0.2889076923076918
-              cpu-gpu-combined-memory-utilization: 0.5889076923076918
-              cpu-gpu-average-memory-utilization: 0.2944538461538459
-              memory-wattage: 5.00571538461538
-              memory-wattage-times-duration: 1081234.5230769222
-              memory/energy: 0.30034292307692284
-              energy: 2.1945429230769227
+              cpu-gpu-combined-memory-utilization: 0.4072559902726263
+              cpu-gpu-average-memory-utilization: 0.20362799513631316
+              memory-wattage: 3.461675917317324
+              memory-wattage-times-duration: 747721.998140542
+              memory/energy: 0.20770055503903942
+              energy: 0.2176729183936433
               carbon-embodied: 506.69404517453796
-              carbon-operational: 68.0308306153846
-              carbon: 574.7248757899225
-              sci: 574.7248757899225
+              carbon-operational: 6.7478604702029426
+              carbon: 513.4419056447409
+              sci: 513.4419056447409
         ld71r16u15ws:
           inputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -345,7 +345,7 @@ tree:
               cpu/thermal-design-power: 165
               vcpus-total: 28
               vcpus-allocated: 28
-              cpu/utilization: 32
+              cpu/utilization: 0.1642084701261979
               max-cpu-wattage: 1400
               gpu/utilization: 0.005641025641025641
               max-gpu-wattage: 230
@@ -368,7 +368,7 @@ tree:
               cpu/thermal-design-power: 165
               vcpus-total: 28
               vcpus-allocated: 28
-              cpu/utilization: 32
+              cpu/utilization: 0.1642084701261979
               max-cpu-wattage: 1400
               gpu/utilization: 0.005641025641025641
               max-gpu-wattage: 230
@@ -389,10 +389,10 @@ tree:
               gpu-wattage: 0.012974358974358974
               gpu-wattage-times-duration: 2802.461538461538
               gpu/energy: 0.0007784615384615384
-              cpu-utilization: 0.32
-              cpu-wattage: 52.800000000000004
-              cpu-wattage-times-duration: 11404800
-              cpu/energy: 3.168
+              cpu-utilization: 0.001642084701261979
+              cpu-wattage: 0.27094397570822654
+              cpu-wattage-times-duration: 58523.89875297693
+              cpu/energy: 0.016256638542493592
               cpu-memory-utilization: 0.07021152895870969
               gpu-memory-utilization: 0.2842974358974361
               cpu-gpu-combined-memory-utilization: 0.3545089648561458
@@ -400,11 +400,11 @@ tree:
               memory-wattage: 8.5082151565475
               memory-wattage-times-duration: 1837774.47381426
               memory/energy: 0.51049290939285
-              energy: 3.679271370931312
+              energy: 0.5275280094738051
               carbon-embodied: 418.8911704312115
-              carbon-operational: 114.05741249887066
-              carbon: 532.9485829300821
-              sci: 532.9485829300821
+              carbon-operational: 16.353368293687957
+              carbon: 435.2445387248994
+              sci: 435.2445387248994
         ld71r18u44fws:
           inputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -412,7 +412,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 85
+              cpu/utilization: 1.408925411333655
               max-cpu-wattage: 280
               gpu/utilization: 1.901025641025657
               max-gpu-wattage: 70
@@ -435,7 +435,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 85
+              cpu/utilization: 1.408925411333655
               max-cpu-wattage: 280
               gpu/utilization: 1.901025641025657
               max-gpu-wattage: 70
@@ -456,10 +456,10 @@ tree:
               gpu-wattage: 1.3307179487179597
               gpu-wattage-times-duration: 287435.07692307926
               gpu/energy: 0.07984307692307757
-              cpu-utilization: 0.85
-              cpu-wattage: 76.5
-              cpu-wattage-times-duration: 16524000
-              cpu/energy: 4.59
+              cpu-utilization: 0.01408925411333655
+              cpu-wattage: 1.2680328702002894
+              cpu-wattage-times-duration: 273895.0999632625
+              cpu/energy: 0.07608197221201736
               cpu-memory-utilization: 0.2161179130912394
               gpu-memory-utilization: 0.1593538461538465
               cpu-gpu-combined-memory-utilization: 0.3754717592450859
@@ -467,11 +467,11 @@ tree:
               memory-wattage: 3.19150995358323
               memory-wattage-times-duration: 689366.1499739777
               memory/energy: 0.1914905972149938
-              energy: 4.861333674138072
+              energy: 0.3474156463500887
               carbon-embodied: 506.69404517453796
-              carbon-operational: 150.70134389828021
-              carbon: 657.3953890728181
-              sci: 657.3953890728181
+              carbon-operational: 10.76988503685275
+              carbon: 517.4639302113907
+              sci: 517.4639302113907
         ld71r16u13ws:
           inputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -479,7 +479,7 @@ tree:
               cpu/thermal-design-power: 165
               vcpus-total: 28
               vcpus-allocated: 28
-              cpu/utilization: 36
+              cpu/utilization: 0.274482596921672
               max-cpu-wattage: 1400
               gpu/utilization: 0.006676938880328711
               max-gpu-wattage: 230
@@ -494,7 +494,7 @@ tree:
               network-intensity: 0.000124
               machine: 1
               memory/thermal-design-power: 48
-              cpu-memory/utilization: 50
+              cpu-memory/utilization: 6.579248898173702
               gpu-memory/utilization: 30.29943502824854
           outputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -502,7 +502,7 @@ tree:
               cpu/thermal-design-power: 165
               vcpus-total: 28
               vcpus-allocated: 28
-              cpu/utilization: 36
+              cpu/utilization: 0.274482596921672
               max-cpu-wattage: 1400
               gpu/utilization: 0.006676938880328711
               max-gpu-wattage: 230
@@ -517,28 +517,28 @@ tree:
               network-intensity: 0.000124
               machine: 1
               memory/thermal-design-power: 48
-              cpu-memory/utilization: 50
+              cpu-memory/utilization: 6.579248898173702
               gpu-memory/utilization: 30.29943502824854
               gpu-utilization: 0.00006676938880328712
               gpu-wattage: 0.015356959424756038
               gpu-wattage-times-duration: 3317.103235747304
               gpu/energy: 0.0009214175654853622
-              cpu-utilization: 0.36
-              cpu-wattage: 59.4
-              cpu-wattage-times-duration: 12830400
-              cpu/energy: 3.564
-              cpu-memory-utilization: 0.5
+              cpu-utilization: 0.0027448259692167197
+              cpu-wattage: 0.45289628492075873
+              cpu-wattage-times-duration: 97825.59754288389
+              cpu/energy: 0.027173777095245523
+              cpu-memory-utilization: 0.06579248898173702
               gpu-memory-utilization: 0.3029943502824854
-              cpu-gpu-combined-memory-utilization: 0.8029943502824854
-              cpu-gpu-average-memory-utilization: 0.4014971751412427
-              memory-wattage: 19.27186440677965
-              memory-wattage-times-duration: 4162722.7118644044
-              memory/energy: 1.156311864406779
-              energy: 4.721233281972264
+              cpu-gpu-combined-memory-utilization: 0.3687868392642224
+              cpu-gpu-average-memory-utilization: 0.1843934196321112
+              memory-wattage: 8.850884142341338
+              memory-wattage-times-duration: 1911790.974745729
+              memory/energy: 0.5310530485404803
+              energy: 0.5591482432012111
               carbon-embodied: 418.8911704312115
-              carbon-operational: 146.35823174114017
-              carbon: 565.2494021723517
-              sci: 565.2494021723517
+              carbon-operational: 17.333595539237546
+              carbon: 436.224765970449
+              sci: 436.224765970449
         ld71r18u44bws:
           inputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -546,7 +546,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 35
+              cpu/utilization: 0.2656404420711027
               max-cpu-wattage: 280
               gpu/utilization: 0.1676923076923068
               max-gpu-wattage: 70
@@ -569,7 +569,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 35
+              cpu/utilization: 0.2656404420711027
               max-cpu-wattage: 280
               gpu/utilization: 0.1676923076923068
               max-gpu-wattage: 70
@@ -590,10 +590,10 @@ tree:
               gpu-wattage: 0.11738461538461477
               gpu-wattage-times-duration: 25355.07692307679
               gpu/energy: 0.007043076923076886
-              cpu-utilization: 0.35
-              cpu-wattage: 31.499999999999996
-              cpu-wattage-times-duration: 6803999.999999999
-              cpu/energy: 1.8899999999999997
+              cpu-utilization: 0.002656404420711027
+              cpu-wattage: 0.23907639786399243
+              cpu-wattage-times-duration: 51640.501938622365
+              cpu/energy: 0.014344583871839546
               cpu-memory-utilization: 0.1823871667406782
               gpu-memory-utilization: 0.2867025641025644
               cpu-gpu-combined-memory-utilization: 0.46908973084324257
@@ -601,11 +601,11 @@ tree:
               memory-wattage: 3.9872627121675617
               memory-wattage-times-duration: 861248.7458281934
               memory/energy: 0.23923576273005373
-              energy: 2.1362788396531305
+              energy: 0.26062342352497014
               carbon-embodied: 506.69404517453796
-              carbon-operational: 66.22464402924705
-              carbon: 572.918689203785
-              sci: 572.918689203785
+              carbon-operational: 8.079326129274074
+              carbon: 514.773371303812
+              sci: 514.773371303812
         ld71r18u44cws:
           inputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -613,7 +613,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 89
+              cpu/utilization: 0.1215987597896913
               max-cpu-wattage: 280
               gpu/utilization: 0.006666666666666665
               max-gpu-wattage: 70
@@ -628,7 +628,7 @@ tree:
               network-intensity: 0.000124
               machine: 1
               memory/thermal-design-power: 17
-              cpu-memory/utilization: 63
+              cpu-memory/utilization: 18.70434439128427
               gpu-memory/utilization: 29.48666666666664
           outputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -636,7 +636,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 89
+              cpu/utilization: 0.1215987597896913
               max-cpu-wattage: 280
               gpu/utilization: 0.006666666666666665
               max-gpu-wattage: 70
@@ -651,28 +651,28 @@ tree:
               network-intensity: 0.000124
               machine: 1
               memory/thermal-design-power: 17
-              cpu-memory/utilization: 63
+              cpu-memory/utilization: 18.70434439128427
               gpu-memory/utilization: 29.48666666666664
               gpu-utilization: 0.00006666666666666666
               gpu-wattage: 0.004666666666666666
               gpu-wattage-times-duration: 1007.9999999999999
               gpu/energy: 0.00028
-              cpu-utilization: 0.89
-              cpu-wattage: 80.1
-              cpu-wattage-times-duration: 17301600
-              cpu/energy: 4.806
-              cpu-memory-utilization: 0.63
+              cpu-utilization: 0.001215987597896913
+              cpu-wattage: 0.10943888381072217
+              cpu-wattage-times-duration: 23638.79890311599
+              cpu/energy: 0.0065663330286433305
+              cpu-memory-utilization: 0.1870434439128427
               gpu-memory-utilization: 0.2948666666666664
-              cpu-gpu-combined-memory-utilization: 0.9248666666666664
-              cpu-gpu-average-memory-utilization: 0.4624333333333332
-              memory-wattage: 7.861366666666664
-              memory-wattage-times-duration: 1698055.1999999995
-              memory/energy: 0.4716819999999999
-              energy: 5.277962
+              cpu-gpu-combined-memory-utilization: 0.48191011057950905
+              cpu-gpu-average-memory-utilization: 0.24095505528975453
+              memory-wattage: 4.096235939925827
+              memory-wattage-times-duration: 884786.9630239786
+              memory/energy: 0.24577415639554961
+              energy: 0.25262048942419296
               carbon-embodied: 506.69404517453796
-              carbon-operational: 163.61682199999998
-              carbon: 670.310867174538
-              sci: 670.310867174538
+              carbon-operational: 7.831235172149982
+              carbon: 514.525280346688
+              sci: 514.525280346688
         ld71r16u14ws:
           inputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -680,7 +680,7 @@ tree:
               cpu/thermal-design-power: 165
               vcpus-total: 28
               vcpus-allocated: 28
-              cpu/utilization: 29
+              cpu/utilization: 0.166101130945421
               max-cpu-wattage: 1400
               gpu/utilization: 0.004617752693689071
               max-gpu-wattage: 230
@@ -703,7 +703,7 @@ tree:
               cpu/thermal-design-power: 165
               vcpus-total: 28
               vcpus-allocated: 28
-              cpu/utilization: 29
+              cpu/utilization: 0.166101130945421
               max-cpu-wattage: 1400
               gpu/utilization: 0.004617752693689071
               max-gpu-wattage: 230
@@ -724,10 +724,10 @@ tree:
               gpu-wattage: 0.010620831195484863
               gpu-wattage-times-duration: 2294.0995382247306
               gpu/energy: 0.0006372498717290918
-              cpu-utilization: 0.29
-              cpu-wattage: 47.849999999999994
-              cpu-wattage-times-duration: 10335599.999999998
-              cpu/energy: 2.8709999999999996
+              cpu-utilization: 0.00166101130945421
+              cpu-wattage: 0.2740668660599447
+              cpu-wattage-times-duration: 59198.44306894805
+              cpu/energy: 0.01644401196359668
               cpu-memory-utilization: 0.09854467404098585
               gpu-memory-utilization: 0.1886659825551568
               cpu-gpu-combined-memory-utilization: 0.28721065659614264
@@ -735,11 +735,11 @@ tree:
               memory-wattage: 6.8930557583074235
               memory-wattage-times-duration: 1488900.0437944036
               memory/energy: 0.41358334549844544
-              energy: 3.2852205953701743
+              energy: 0.4306646073337712
               carbon-embodied: 418.8911704312115
-              carbon-operational: 101.8418384564754
-              carbon: 520.7330088876869
-              sci: 520.7330088876869
+              carbon-operational: 13.350602827346908
+              carbon: 432.2417732585584
+              sci: 432.2417732585584
         ld71r18u44ews:
           inputs:
             - timestamp: '2024-06-09T23:00:00.000Z'
@@ -747,7 +747,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 40
+              cpu/utilization: 1.009326705257337
               max-cpu-wattage: 280
               gpu/utilization: 0.8504398826979469
               max-gpu-wattage: 70
@@ -770,7 +770,7 @@ tree:
               cpu/thermal-design-power: 90
               vcpus-total: 24
               vcpus-allocated: 24
-              cpu/utilization: 40
+              cpu/utilization: 1.009326705257337
               max-cpu-wattage: 280
               gpu/utilization: 0.8504398826979469
               max-gpu-wattage: 70
@@ -791,10 +791,10 @@ tree:
               gpu-wattage: 0.5953079178885629
               gpu-wattage-times-duration: 128586.51026392958
               gpu/energy: 0.03571847507331377
-              cpu-utilization: 0.4
-              cpu-wattage: 36
-              cpu-wattage-times-duration: 7776000
-              cpu/energy: 2.16
+              cpu-utilization: 0.010093267052573369
+              cpu-wattage: 0.9083940347316032
+              cpu-wattage-times-duration: 196213.1115020263
+              cpu/energy: 0.054503642083896194
               cpu-memory-utilization: 0.11206764674079339
               gpu-memory-utilization: 0.2903225806451613
               cpu-gpu-combined-memory-utilization: 0.4023902273859547
@@ -802,8 +802,8 @@ tree:
               memory-wattage: 3.420316932780615
               memory-wattage-times-duration: 738788.4574806129
               memory/energy: 0.20521901596683692
-              energy: 2.4009374910401506
+              energy: 0.29544113312404685
               carbon-embodied: 506.69404517453796
-              carbon-operational: 74.42906222224467
-              carbon: 581.1231073967826
-              sci: 581.1231073967826
+              carbon-operational: 9.158675126845452
+              carbon: 515.8527203013834
+              sci: 515.8527203013834

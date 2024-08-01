@@ -165,7 +165,6 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             continue
         template = process_row(row, start_date, duration)
         templates.append(template)
-    print(templates)
     # print(templates)
     
     # Output the modified DataFrame to a new CSV file
