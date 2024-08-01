@@ -260,7 +260,7 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 35.0
+        cpu/utilization: 0.1068956176778499
         max-cpu-wattage: 280
         gpu/utilization: 0.1
         max-gpu-wattage: 70
@@ -275,14 +275,14 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
-        cpu-memory/utilization: 30.0
+        cpu-memory/utilization: 11.83482979649345
         gpu-memory/utilization: 28.89076923076918
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306000
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 32.0
+        cpu/utilization: 0.1642084701261979
         max-cpu-wattage: 1400
         gpu/utilization: 0.005641025641025641
         max-gpu-wattage: 230
@@ -304,7 +304,7 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 85.0
+        cpu/utilization: 1.408925411333655
         max-cpu-wattage: 280
         gpu/utilization: 1.901025641025657
         max-gpu-wattage: 70
@@ -326,7 +326,7 @@ tree:
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 36.0
+        cpu/utilization: 0.274482596921672
         max-cpu-wattage: 1400
         gpu/utilization: 0.006676938880328711
         max-gpu-wattage: 230
@@ -341,14 +341,14 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 48
-        cpu-memory/utilization: 50.0
+        cpu-memory/utilization: 6.579248898173702
         gpu-memory/utilization: 30.29943502824854
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370140.0
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 35.0
+        cpu/utilization: 0.2656404420711027
         max-cpu-wattage: 280
         gpu/utilization: 0.1676923076923068
         max-gpu-wattage: 70
@@ -370,7 +370,7 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 89.0
+        cpu/utilization: 0.1215987597896913
         max-cpu-wattage: 280
         gpu/utilization: 0.006666666666666665
         max-gpu-wattage: 70
@@ -385,14 +385,14 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
-        cpu-memory/utilization: 63.0
+        cpu-memory/utilization: 18.70434439128427
         gpu-memory/utilization: 29.48666666666664
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306000
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 29.0
+        cpu/utilization: 0.166101130945421
         max-cpu-wattage: 1400
         gpu/utilization: 0.004617752693689071
         max-gpu-wattage: 230
@@ -414,7 +414,7 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 40.0
+        cpu/utilization: 1.009326705257337
         max-cpu-wattage: 280
         gpu/utilization: 0.8504398826979469
         max-gpu-wattage: 70
