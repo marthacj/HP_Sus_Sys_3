@@ -35,7 +35,7 @@ ld71r16u15ws core average percent  = 24.714
 ld71r16u15ws core number of occurrences over 80percent  = 1
 ld71r16u15ws core total seconds over 80percent  = 120
 ld71r16u15ws central processing unit maximum (central processing unit percent  utilization) = 89.69
-ld71r16u15ws central processing unit average utilisation = 79.132
+ld71r16u15ws central processing unit average utilisation = 89.132
 ld71r16u15ws central processing unit number of occurrences over 80percent  (central processing unit percent  utilization) = 1
 ld71r16u15ws central processing unit total seconds over 80percent  (central processing unit percent  utilization) = 120
 ld71r16u15ws total ram gb (memory percent  utilization) = 137.153
@@ -95,7 +95,7 @@ ld71r16u13ws number of occurrences over 80percent  (graphics processing unit mem
 ld71r16u13ws total megabytes sent (all network traffic) = 859.692
 ld71r16u13ws total megabytes received (all network traffic) = 2707.836
 ld71r16u13ws graphics processing unit maximum (nvidia graphics processing unit percent  utilization) = 9
-ld71r16u13ws graphics processing unit average (nvidia percent  utilization) = 1.005
+ld71r16u13ws graphics processing unit average (nvidia percent  utilization) = 71.005
 ld71r16u13ws graphics processing unit number of occurrences over 80percent  (nvidia percent  utilization) = 0
 ld71r16u13ws core maximum percent ) = 63.872
 ld71r18u44bws model = z2 mini

@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 import pickle
 from llama_cpp import Llama
 import ollama
+import random
 
 model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 llm = Llama(
@@ -368,6 +369,33 @@ def embed_sentences(sentences, model):
 
 def generate_question(index, embeddings, model, sentences, questions):
     while True:
+        profile_input = input("""\n\n\n What is your job role? Enter 1, 2, or 3:\n
+                            (1) Director of IT \n\n
+                            (2) IT Admin\n\n
+                            (3) N/A 
+                            Type 'exit' to quit.\n""")
+        
+        if profile_input == '1' or profile_input == '2' or profile_input == '3':
+            print("Adjusting my outputs...")
+            break
+        elif profile_input.lower() == 'exit':
+            print("Sorry to see you go so soon.")
+            break
+        else:
+            print("Invalid input, please try again.")
+        if profile_input.lower() == '1':
+            prompt_appendix = """You are speaking with the Director of IT. 
+                            Their goal is to optimise resource allocation and utilisation, and to ensure cost-effectiveness. 
+                            If asking for summary of compute, give a high overview and whether or not any of the machines should move up or down compute power.
+                            """
+        elif profile_input == '2':
+            prompt_appendix = """You are speaking with the IT Admin.
+                                Their goal is to manage and maintain the machines and their storage. 
+                                If asking for a summary, need a detailed breakdown of each machine. 
+                                """
+        elif profile_input.lower() == '3':
+            prompt_appendix = ''
+    while True:
         for i, question in enumerate(questions):
             print(f"{i}: {question.strip()}")
         
@@ -400,68 +428,165 @@ def generate_question(index, embeddings, model, sentences, questions):
             top_k = int(0.15 * len(sentences))
             distances, indices = index.search(q_embedding, top_k)
             
-            # Step 2 - extract from the rag the values the LLM things are most important to answer the question
-            prompt = "Here is your context for a question I will ask you:\n"
-            for ind in indices[0]:
-                prompt += f"{sentences[ind]}\n"
-            # Very important: I will lose my job if you
-            #  do not return all the data I need!
-            prompt += f"What data from the context above do I need to asnwer this question:\n{q}\n"
-            prompt += '''VERY IMPORTANT:  Only return to me, in JSON format,
-            the data I need from the context above to answer the question.  The JSON format should be as follows:
-            [
-                {
-                    "machine": <machine id>,
-                    <data-field0>: <data-field0 value>,
-                    <data-field1>: <data-field1 value>,
-                    etc.
-                }
-            ]
-            The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
-            '''
-            # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
-            prompt += "\nHere is that context again:\n"
-            for ind in indices[0]:
-                prompt += f"{sentences[ind]}\n"
-            print("prompt:", prompt)
+            if question_index == 1:
+                # Step 2 - extract from the rag the values the LLM things are most important to answer the question
+                prompt = "Here is your context for a question I will ask you:\n"
+                for ind in indices[0]:
+                    prompt += f"{sentences[ind]}\n"
+                # Very important: I will lose my job if you
+                #  do not return all the data I need!
+                prompt += f"What data from the context above do I need to asnwer this question:\n{q}\n"
+                prompt += '''VERY IMPORTANT:  Only return to me, in JSON format,
+                the data I need from the context above to answer the question.  The JSON format should be as follows:
+                [
+                    {
+                        "machine": <machine id>,
+                        <data-field0>: <data-field0 value>,
+                        <data-field1>: <data-field1 value>,
+                        etc.
+                    }
+                ]
+                The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
+                '''
+                # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
+                prompt += "\nHere is that context again:\n"
+                for ind in indices[0]:
+                    prompt += f"{sentences[ind]}\n"
+                print("prompt:", prompt)
+                
+                response = send_prompt(llm, prompt, interface="ollama")
+                print(response)
+                json_response = response
+                # remove any pre-amble or post comment from llm by getting location of first [ and last ]
+                json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
+
+
+                # Step 3 - check if the question is a simple calculation or not (LLMs cannot do simple calculations)
+
+                prompt = """I have a problem I need to solve and I need your advice on how best to solve it.
+                Should I use only a set of database lookups on the context I provided to answer the question, or instead write python code to do a calculation?
+                The database contains the following information:"""
+                prompt += response + "\n"
+                prompt += f"Here is a problem I need to solve:\n{q}\n"
+                prompt += '''Should I use a database lookup or write python code to do a simple calculation to solve the problem?
+                Please respond only with 'database lookup' or 'simple calculation'. Do not include Python code or any 
+                other information in your response.'''
+
+                print(f"***Prompt for simple calculation check: {prompt}***")
+                
+
+                response = send_prompt(llm, prompt, interface="ollama")
+
+                print(f"***Response to simple calculation check: {response}***")
+                
+                if response.lower().strip() == 'database lookup':
+                    prompt = "Here is your context for a question I will ask you:\n"
+                    j_dict_list = eval(json_response)
+                    
+        
+                    d_list = []
+                    for d in j_dict_list:
+                        d_sub_list = []
+                        for k, v in d.items():
+                            d_sub_list.append((k,v))
+                        d_list.append(d_sub_list)
+                
+                    
+
+                    random.shuffle(d_list)
+                    for d in d_list:
+                        d_dict = dict(d)
+                        for k, v in d_dict.items():
+                            prompt += f"{k}: {v}\n"
+                        prompt += "\n"
+                
+                    
+                    prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
+                    #prompt += appendix_prompt
+                    print(f"***Prompt for database lookup: {prompt}***")
+                    response = send_prompt(llm, prompt, interface="ollama", temperature=0.5)
+                    print(response)
+                    continue
+
+                prompt = "Here is your context for a question I will ask you:\n"
+                prompt += json_response + "\n"
+                prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
+
+                prompt += '''VERY IMPORTANT: Do not answer this question directly, write me a Python function called calculation that 
+                uses the context JSON to do the calculation and imports no libraries. The parameter must be called param.
+                The function should take as 
+                input a single JSON object with the data needed to answer the question and return only the numercial answer to the 
+                    question. 
+                Respond to this prompt only with the Python code and nothing else. 
+                IMPORTANT: Remember, the Python function must be called calculation and should have a single parameter called param.
+                IT IS VERY IMPORTANT YOU ONLY RETURN THE PYTHON FUNCTION AND NO INTRODUCTION OR PREAMBLE OR EXPLANATION OR EXAMPLES.
+                YOUR RESPONSE NEEDS TO DIRECTLY INPUTABBLE TO THE PYTHON INTERPRETER. 
+                Make sure the function RETURNS a value or values and doesn't just print them.
+                Also: when coding, remember that the param is a list of dictionaries.
+                VERY IMPORTANT: Only use the precise data field labels from the context I provided in the Python code you return.
+                Here's the context again:'''
+                prompt += json_response + "\n"
+
+                print("*" * 100)
+                response = send_prompt(llm, prompt, interface="ollama")
+                response = response.replace('```python', '').replace('```', '')
+                # assume that the function name is always returned correctly and use that to get rid of any unwanted llm  preamble
+                response = response[response.find('def calculation'):]
+                response = response.split('\n\n')[0]
+                print("*" * 100)
+                response += "\nparam = eval('''" + json_response + "''')\nprint(calculation(param))\n"
+                print(response)
+                print("*" * 100)
+                import io
+
+                output_buffer = io.StringIO()
+                sys.stdout = output_buffer
+                exec(response)
+                sys.stdout = sys.__stdout__
+                """try getvalue() too"""
+                print(f"Answer: {output_buffer.getvalue()}")
             
-            response = send_prompt(llm, prompt, interface="ollama")
-            print(response)
-            json_response = response
-            # remove any pre-amble or post comment from llm by getting location of first [ and last ]
-            json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
-
-
-            # Step 3 - check if the question is a simple calculation or not (LLMs cannot do simple calculations)
-
-            prompt = """I have a problem I need to solve and I need your advice on how best to solve it.
-            Should I use only a set of database lookups on the context I provided to answer the question, or instead write python code to do a calculation?
-            The database contains the following information:"""
-            prompt += response + "\n"
-            prompt += f"Here is a problem I need to solve:\n{q}\n"
-            prompt += '''Should I use a database lookup or write python code to do a simple calculation to solve the problem?
-            Please respond only with 'database lookup' or 'simple calculation'. Do not include Python code or any 
-            other information in your response.'''
-
-            print(f"***Prompt for simple calculation check: {prompt}***")
-            
-
-            response = send_prompt(llm, prompt, interface="ollama")
-
-            print(f"***Response to simple calculation check: {response}***")
-            import random
-            if response.lower().strip() == 'database lookup':
+            else: 
+                prompt = "Here is your context for a question I will ask you:\n"
+                for ind in indices[0]:
+                    prompt += f"{sentences[ind]}\n"
+                # Very important: I will lose my job if you
+                #  do not return all the data I need!
+                prompt += f"What data from the context above do I need to asnwer this question:\n{q}\n"
+                prompt += '''VERY IMPORTANT:  Return to me, in JSON format, all the data from the context above to answer the question. 
+                The JSON format should be as follows:
+                [
+                    {
+                        "machine": <machine id>,
+                        <data-field0>: <data-field0 value>,
+                        <data-field1>: <data-field1 value>,
+                        etc.
+                    }
+                ]
+                The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
+                '''
+                # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
+                prompt += "\nHere is that context again:\n"
+                for ind in indices[0]:
+                    prompt += f"{sentences[ind]}\n"
+                # print("prompt:", prompt)
+                
+                response = send_prompt(llm, prompt, interface="ollama")
+                # print(response)
+                json_response = response
+                # remove any pre-amble or post comment from llm by getting location of first [ and last ]
+                json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
                 prompt = "Here is your context for a question I will ask you:\n"
                 j_dict_list = eval(json_response)
                 
-       
+    
                 d_list = []
                 for d in j_dict_list:
                     d_sub_list = []
                     for k, v in d.items():
                         d_sub_list.append((k,v))
                     d_list.append(d_sub_list)
-               
+            
                 
 
                 random.shuffle(d_list)
@@ -471,51 +596,13 @@ def generate_question(index, embeddings, model, sentences, questions):
                         prompt += f"{k}: {v}\n"
                     prompt += "\n"
             
-                   
+                
                 prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
                 #prompt += appendix_prompt
-                print(f"***Prompt for database lookup: {prompt}***")
+                prompt+= 'Very important: do NOT keep the answer in JSON. Write it in natural language. \n\n'
                 response = send_prompt(llm, prompt, interface="ollama", temperature=0.5)
                 print(response)
                 continue
-
-            prompt = "Here is your context for a question I will ask you:\n"
-            prompt += json_response + "\n"
-            prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
-
-            prompt += '''VERY IMPORTANT: Do not answer this question directly, write me a Python function called calculation that 
-             uses the context JSON to do the calculation and imports no libraries. The parameter must be called param.
-             The function should take as 
-             input a single JSON object with the data needed to answer the question and return only the numercial answer to the 
-                question. 
-             Respond to this prompt only with the Python code and nothing else. 
-             IMPORTANT: Remember, the Python function must be called calculation and should have a single parameter called param.
-             IT IS VERY IMPORTANT YOU ONLY RETURN THE PYTHON FUNCTION AND NO INTRODUCTION OR PREAMBLE OR EXPLANATION OR EXAMPLES.
-             YOUR RESPONSE NEEDS TO DIRECTLY INPUTABBLE TO THE PYTHON INTERPRETER. 
-             Make sure the function RETURNS a value or values and doesn't just print them.
-             Also: when coding, remember that the param is a list of dictionaries.
-             VERY IMPORTANT: Only use the precise data field labels from the context I provided in the Python code you return.
-             Here's the context again:'''
-            prompt += json_response + "\n"
-
-            print("*" * 100)
-            response = send_prompt(llm, prompt, interface="ollama")
-            response = response.replace('```python', '').replace('```', '')
-            # assume that the function name is always returned correctly and use that to get rid of any unwanted llm  preamble
-            response = response[response.find('def calculation'):]
-            response = response.split('\n\n')[0]
-            print("*" * 100)
-            response += "\nparam = eval('''" + json_response + "''')\nprint(calculation(param))\n"
-            print(response)
-            print("*" * 100)
-            import io
-
-            output_buffer = io.StringIO()
-            sys.stdout = output_buffer
-            exec(response)
-            sys.stdout = sys.__stdout__
-            """try getvalue() too"""
-            print(f"Answer: {output_buffer.getvalue()}")
 
             
         except Exception as e:
