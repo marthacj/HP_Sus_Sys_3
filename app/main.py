@@ -88,6 +88,7 @@ if __name__ == '__main__':
 
     # now add the carbon emissions data to the prepared dataframe
     merged_df = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
+
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
     print(merged_df.columns)
