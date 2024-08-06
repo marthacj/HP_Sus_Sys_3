@@ -406,7 +406,7 @@ def generate_question(index, embeddings, model, sentences, questions):
             # Very important: I will lose my job if you
             #  do not return all the data I need!
             prompt += f"Here is a question for you to answer:\n{q}\n"
-            prompt += '''VERY IMPORTANT: Do no answer this question yet. Only return to me, in JSON format,
+            prompt += '''VERY IMPORTANT: Do not answer this question yet. Only return to me, in JSON format,
             the data I need from the context above to answer the question.  The JSON format should be as follows:
             [
                 {
@@ -429,10 +429,13 @@ def generate_question(index, embeddings, model, sentences, questions):
 
             # Step 3 - check if the question is a simple calculation or not (LLMs cannot do simple calculations)
 
+            #  Can this question be answered by reading off from the contextual data provided without needing to do any calculations?
+#  Can this question be answered by a VERY SIMPLE non-conditional loop calculation using Python and the provided data?
+#             If the question can be answered simply by reading off from the contextual data provided, then the answer is NO.
             prompt = "Here is your context for a question I will ask you:\n"
             prompt += response + "\n"
             prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
-            prompt += '''VERY IMPORTANT: Do no answer this question directly, but reply simply YES or NO to the following:
+            prompt += '''VERY IMPORTANT: Do not answer this question directly, but reply simply YES or NO to the following:
             Can this question be answered by a VERY SIMPLE non-conditional loop calculation using Python and the provided data?
             If the question can be answered simply by reading off from the contextual data provided, then the answer is NO.
             Just respond yes or no, and nothing else.'''
@@ -452,14 +455,13 @@ def generate_question(index, embeddings, model, sentences, questions):
                 print(response)
                 continue
 
-            prompt += '''VERY IMPORTANT: Do no answer this question directly, write me a Python function called calculation that 
+            prompt += '''VERY IMPORTANT: Do not answer this question directly, write me a Python function called calculation that 
              uses the context JSON to do the calculation and imports no libraries. The parameter must be called param.
-             The function should take as 
-             input a single JSON object with the data needed to answer the question and return only the numercial answer to the 
-                question. 
+             The function should take as input a single JSON object with the data needed to answer the question and return only the numercial answer to the question. 
              Respond to this prompt only with the Python code and nothing else. 
              IMPORTANT: Remember, the Python function must be called calculation and should have a single parameter called param.
              IT IS VERY IMPORTANT YOU ONLY RETURN THE PYTHON FUNCTION AND NO INTRODUCTION OR PREAMBLE OR EXPLANATION OR EXAMPLES.
+             VERY IMPORTANT: IN THE FUNCTION, ONLY USE NAMES FOR VARIABLES WHICH ARE IDENTICAL TO THOSE PROVIDED IN THE CONTEXT.
              YOUR RESPONSE NEEDS TO DIRECTLY INPUTABBLE TO THE PYTHON INTERPRETER. 
              Make sure the function RETURNS a value or values and doesn't just print them.
              Also: when coding, remember that the param is a list of dictionaries.'''
