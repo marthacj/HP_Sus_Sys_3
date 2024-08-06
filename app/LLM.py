@@ -21,10 +21,10 @@ llm = Llama(
 )
 
 def send_prompt(llm, prompt: str, interface: str = "ollama", 
-                max_tokens: int = 1024) -> str:
+                max_tokens: int = 1024, temperature: float = 0) -> str:
     if interface == "ollama":
-        response = ollama.generate(model="mistral:latest",
-                                   prompt=prompt, keep_alive='24h', options={'num_ctx': 16000})
+        response = ollama.generate(model="llama3",
+                                   prompt=prompt, keep_alive='24h', options={'num_ctx': 16000, 'temperature': temperature})
         response = response['response']
     else: 
         # assume llama_cpp
@@ -55,7 +55,7 @@ def prepare_excel_file(excel_file):
 
     replace_dict = {
         '#Cores': 'number of cores',
-        'CPU\nHighest\navg': 'central processing unit average (central processing unit % utilization)',
+        'CPU\nHighest\navg': 'central processing unit average utilisation',
         'GPU\navg': 'graphics processing unit average (NVIDIA % Utilization)',
         'Total MB\nSent': 'total MB sent (All Network Traffic)',
         'Total MB\nReceived': 'total MB received (All Network Traffic)',
@@ -108,7 +108,7 @@ def prepare_excel_file(excel_file):
 
     """round the values in the column GPU average (NVIDIA % Utilization) to 3 decimal places"""
     df['graphics processing unit average (NVIDIA % Utilization)'] = df['graphics processing unit average (NVIDIA % Utilization)'].apply(lambda x: round(x, 3))
-    df['central processing unit average (central processing unit % utilization)'] = df['central processing unit average (central processing unit % utilization)'].apply(lambda x: round(x, 3))
+    df['central processing unit average utilisation'] = df['central processing unit average utilisation'].apply(lambda x: round(x, 3))
     df['core average %'] = df['core average %'].apply(lambda x: round(x, 3))
     df['core maximum %)'] = df['core maximum %'].apply(lambda x: round(x, 3))
     df['central processing unit Maximum (central processing unit % utilization)'] = df['central processing unit Maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
@@ -392,6 +392,7 @@ def generate_question(index, embeddings, model, sentences, questions):
             # Step 1 get all rag values for the question
             # Get the question based on the user input
             q = questions[question_index]
+            q = q.strip()[4:]
             q_embedding = model.encode(q)
             q_embedding = q_embedding.reshape(1, -1)
             
@@ -405,20 +406,21 @@ def generate_question(index, embeddings, model, sentences, questions):
                 prompt += f"{sentences[ind]}\n"
             # Very important: I will lose my job if you
             #  do not return all the data I need!
-            prompt += f"Here is a question for you to answer:\n{q}\n"
-            prompt += '''VERY IMPORTANT: Do no answer this question yet. Only return to me, in JSON format,
+            prompt += f"What data from the context above do I need to asnwer this question:\n{q}\n"
+            prompt += '''VERY IMPORTANT:  Only return to me, in JSON format,
             the data I need from the context above to answer the question.  The JSON format should be as follows:
             [
                 {
                     "machine": <machine id>,
-                    <needed data field0 name>: <needed data field0 value>,
-                    <needed data field1 name>: <needed data field1 value>,
+                    <data-field0>: <data-field0 value>,
+                    <data-field1>: <data-field1 value>,
                     etc.
                 }
             ]
+            The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
             '''
             # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
-            prompt += "\nHere is the context again:\n"
+            prompt += "\nHere is that context again:\n"
             for ind in indices[0]:
                 prompt += f"{sentences[ind]}\n"
             print("prompt:", prompt)
@@ -426,45 +428,75 @@ def generate_question(index, embeddings, model, sentences, questions):
             response = send_prompt(llm, prompt, interface="ollama")
             print(response)
             json_response = response
+            # remove any pre-amble or post comment from llm by getting location of first [ and last ]
+            json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
+
 
             # Step 3 - check if the question is a simple calculation or not (LLMs cannot do simple calculations)
 
-            #  Can this question be answered by reading off from the contextual data provided without needing to do any calculations?
-#  Can this question be answered by a VERY SIMPLE non-conditional loop calculation using Python and the provided data?
-#             If the question can be answered simply by reading off from the contextual data provided, then the answer is NO.
-            prompt = "Here is your context for a question I will ask you:\n"
+            prompt = """I have a problem I need to solve and I need your advice on how best to solve it.
+            Should I use only a set of database lookups on the context I provided to answer the question, or instead write python code to do a calculation?
+            The database contains the following information:"""
             prompt += response + "\n"
-            prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
-            prompt += '''VERY IMPORTANT: Do no answer this question directly, but reply simply YES or NO to the following:
-            Can this question be answered by a VERY SIMPLE non-conditional loop calculation using Python and the provided data?
-            If the question can be answered simply by reading off from the contextual data provided, then the answer is NO.
-            Just respond yes or no, and nothing else.'''
+            prompt += f"Here is a problem I need to solve:\n{q}\n"
+            prompt += '''Should I use a database lookup or write python code to do a simple calculation to solve the problem?
+            Please respond only with 'database lookup' or 'simple calculation'. Do not include Python code or any 
+            other information in your response.'''
+
+            print(f"***Prompt for simple calculation check: {prompt}***")
+            
 
             response = send_prompt(llm, prompt, interface="ollama")
 
             print(f"***Response to simple calculation check: {response}***")
+            import random
+            if response.lower().strip() == 'database lookup':
+                prompt = "Here is your context for a question I will ask you:\n"
+                j_dict_list = eval(json_response)
+                
+       
+                d_list = []
+                for d in j_dict_list:
+                    d_sub_list = []
+                    for k, v in d.items():
+                        d_sub_list.append((k,v))
+                    d_list.append(d_sub_list)
+               
+                
+
+                random.shuffle(d_list)
+                for d in d_list:
+                    d_dict = dict(d)
+                    for k, v in d_dict.items():
+                        prompt += f"{k}: {v}\n"
+                    prompt += "\n"
             
-
-
-            prompt = "Here is your context for a question I will ask you:\n"
-            prompt += response + "\n"
-            prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
-
-            if response.lower().strip() != 'yes':
-                response = send_prompt(llm, prompt, interface="ollama")
+                   
+                prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
+                #prompt += appendix_prompt
+                print(f"***Prompt for database lookup: {prompt}***")
+                response = send_prompt(llm, prompt, interface="ollama", temperature=0.5)
                 print(response)
                 continue
 
-            prompt += '''VERY IMPORTANT: Do no answer this question directly, write me a Python function called calculation that 
+            prompt = "Here is your context for a question I will ask you:\n"
+            prompt += json_response + "\n"
+            prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
+
+            prompt += '''VERY IMPORTANT: Do not answer this question directly, write me a Python function called calculation that 
              uses the context JSON to do the calculation and imports no libraries. The parameter must be called param.
-             The function should take as input a single JSON object with the data needed to answer the question and return only the numercial answer to the question. 
+             The function should take as 
+             input a single JSON object with the data needed to answer the question and return only the numercial answer to the 
+                question. 
              Respond to this prompt only with the Python code and nothing else. 
              IMPORTANT: Remember, the Python function must be called calculation and should have a single parameter called param.
              IT IS VERY IMPORTANT YOU ONLY RETURN THE PYTHON FUNCTION AND NO INTRODUCTION OR PREAMBLE OR EXPLANATION OR EXAMPLES.
-             VERY IMPORTANT: IN THE FUNCTION, ONLY USE NAMES FOR VARIABLES WHICH ARE IDENTICAL TO THOSE PROVIDED IN THE CONTEXT.
              YOUR RESPONSE NEEDS TO DIRECTLY INPUTABBLE TO THE PYTHON INTERPRETER. 
              Make sure the function RETURNS a value or values and doesn't just print them.
-             Also: when coding, remember that the param is a list of dictionaries.'''
+             Also: when coding, remember that the param is a list of dictionaries.
+             VERY IMPORTANT: Only use the precise data field labels from the context I provided in the Python code you return.
+             Here's the context again:'''
+            prompt += json_response + "\n"
 
             print("*" * 100)
             response = send_prompt(llm, prompt, interface="ollama")
@@ -472,7 +504,7 @@ def generate_question(index, embeddings, model, sentences, questions):
             # assume that the function name is always returned correctly and use that to get rid of any unwanted llm  preamble
             response = response[response.find('def calculation'):]
             response = response.split('\n\n')[0]
-            print(response)
+            print("*" * 100)
             response += "\nparam = eval('''" + json_response + "''')\nprint(calculation(param))\n"
             print(response)
             print("*" * 100)

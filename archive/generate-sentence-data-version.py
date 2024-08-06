@@ -102,37 +102,24 @@ def generate_sentence(row):
     GPU_mem_max = row['MEM\nmax']
     GPU_mem_avg = row['MEM\navg']
     GPU_mem_over_80_occurrences = row['MEM\n#oc > 80%']
-    # sentence = f"""This data was taken over a timespan of 216000 seconds, which is 2.5 days.
-    #                 Host machine {row['Unnamed: 0']} with {row['#Cores']} cores has {cpu_avg} average CPU utilisation.
-    #                 The core in machine {row['Unnamed: 0']} with the highest utilisation rate was averaging {highest_core_average}%, 
-    #                 and went above 80% core utilisation for a total of {core_over_80_seconds} seconds. 
-    #                 The percentage {core_division_result}% ({core_over_80_seconds} / 216000) tells you whether this is a high percentage of the time or not.
-    #                 The CPU in machine {row['Unnamed: 0']} which had the highest usage had an average of {cpu_over_80_seconds} seconds above 80% utilisation. 
-    #                 The percentage {cpu_division_result}% ({cpu_over_80_seconds} / 216000) tells you whether this is a high percentage of the time or not.
-    #                 The total memory capacity for machine {row['Unnamed: 0']} is {total_memory_capacity} GB, and its average memory utilisation is {row['avg']}. 
-    #                 The amount of time machine {row['Unnamed: 0']} went above 80% memory utilisation was {row['#oc > 80%']}.
-    #                 The network traffic statistics for the machine {row['Unnamed: 0']} is known: 
-    #                 The average MB sent per second was {MB_sent_per_sec}, the average MB received per second was {MB_received_per_sec},
-    #                 the total MB sent was {total_MB_sent}, the total MB received was {total_MB_received}. 
-    #                 The GPU utilisation rate for machine {row['Unnamed: 0']} had a minimum of {GPU_min_percentage}%, a maximum of {GPU_max_percentage}%, and an average of {GPU_average_percentage}%,
-    #                 the number of times machine  {row['Unnamed: 0']} went over a GPU utilisation rate of 80% was {GPU_over_80_occurrences}. 
-    #                 The GPU memory utilisation for machine {row['Unnamed: 0']} had a minimum of {GPU_mem_min}%, a maximum of {GPU_mem_max}%, and an average of {GPU_mem_avg}%, 
-    #                 and the number of times it went above an average of 80% was {GPU_mem_over_80_occurrences}."""
-    # different approach to formatting the sentence with tags, and including less info
-    sentence_with_tag = f"""<DURATION-SECONDS>216000</DURATION-SECONDS>.
-                    <MACHINE>{row['Unnamed: 0']}</MACHINE>.
-                    <CPU-AVERAGE-UTILISATION-PERCENTAGE>{cpu_avg}</CPU-AVGERAGE-UTILISATION-PERCENTAGE>.
-                    <CPU-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>{cpu_division_result}</CPU-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>.
-                    <CORE-AVERAGE-UTILISATION-PERCENTAGE>{highest_core_average}</CORE-AVERAGE-UTILISATION-PERCENTAGE>.
-                    <CORE-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>{core_division_result}</CORE-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>.
-                    <AVERAGE-MEMORY-UTILISATION>{row['avg']}</AVERAGE-MEMORY-UTILISATION>.
-                    <MEMORY-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>{row['#oc > 80%']}</MEMORY-PERCENTAGE-OF-DURATION-OVER-80-PERCENT-UTILISATION>.
-                    <NETWORK-TRAFFIC-TOTAL-MB-SENT>{total_MB_sent}</NETWORK-TRAFFIC-TOTAL-MB-SENT>.
-                    <NETWORK-TRAFFIC-TOTAL-MB-RECEIVED>{total_MB_received}</NETWORK-TRAFFIC-TOTAL-MB-RECEIVED>.
-                    <GPU-AVERAGE-UTILISATION-PERCENTAGE>{GPU_average_percentage}</GPU-AVERAGE-UTILISATION-PERCENTAGE>.
-                    <GPU-MEMORY-UTILISATION-AVERAGE-PERCENTAGE>{GPU_mem_avg}</GPU-MEMORY-UTILISATION-AVERAGE-PERCENTAGE>.
-                    <GPU-MEMORY-UTILISATION-MAXIMUM-PERCENTAGE>{GPU_mem_max}</GPU-MEMORY-UTILISATION-MAXIMUM-PERCENTAGE>."""
-    return sentence_with_tag
+    sentence = f"""This data was taken over a timespan of 216000 seconds, which is 2.5 days.
+                    Host machine {row['Unnamed: 0']} with {row['#Cores']} cores has {cpu_avg} average CPU utilisation.
+                    The core in machine {row['Unnamed: 0']} with the highest utilisation rate was averaging {highest_core_average}%, 
+                    and went above 80% core utilisation for a total of {core_over_80_seconds} seconds. 
+                    The percentage {core_division_result}% ({core_over_80_seconds} / 216000) tells you whether this is a high percentage of the time or not.
+                    The CPU in machine {row['Unnamed: 0']} which had the highest usage had an average of {cpu_over_80_seconds} seconds above 80% utilisation. 
+                    The percentage {cpu_division_result}% ({cpu_over_80_seconds} / 216000) tells you whether this is a high percentage of the time or not.
+                    The total memory capacity for machine {row['Unnamed: 0']} is {total_memory_capacity} GB, and its average memory utilisation is {row['avg']}. 
+                    The amount of time machine {row['Unnamed: 0']} went above 80% memory utilisation was {row['#oc > 80%']}.
+                    The network traffic statistics for the machine {row['Unnamed: 0']} is known: 
+                    The average MB sent per second was {MB_sent_per_sec}, the average MB received per second was {MB_received_per_sec},
+                    the total MB sent was {total_MB_sent}, the total MB received was {total_MB_received}. 
+                    The GPU utilisation rate for machine {row['Unnamed: 0']} had a minimum of {GPU_min_percentage}%, a maximum of {GPU_max_percentage}%, and an average of {GPU_average_percentage}%,
+                    the number of times machine  {row['Unnamed: 0']} went over a GPU utilisation rate of 80% was {GPU_over_80_occurrences}. 
+                    The GPU memory utilisation for machine {row['Unnamed: 0']} had a minimum of {GPU_mem_min}%, a maximum of {GPU_mem_max}%, and an average of {GPU_mem_avg}%, 
+                    and the number of times it went above an average of 80% was {GPU_mem_over_80_occurrences}."""
+
+    return sentence
 
 # calling functions and generating global variable sentences for the data on carbon emissions and machine usage 
 machines_list = machine_usage_data.apply(generate_list_of_machines, axis=1)
