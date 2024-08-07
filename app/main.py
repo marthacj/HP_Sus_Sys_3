@@ -4,6 +4,8 @@ from llama_cpp import Llama
 from manifest_generation import *
 from LLM import *
 import subprocess
+from testing import *
+from CSV_upload import *
 
 questions = ["\n \n \n [0] Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n", 
                 "[1] How much is the total carbon emissions for all the machines?\n", 
@@ -16,16 +18,22 @@ questions = ["\n \n \n [0] Can you tell me how much carbon emission is produced 
 
 if __name__ == '__main__':
 
+    # If the user does not input any file path, the default test file path will be used
+    default_file_path = r"data\1038-0610-0614-day-larger-figures-test.xlsx"
+    target_dir = r"data\uploaded_excel_files"
+    uploaded_file_path = upload_file_to_application_directory(target_dir, default_file_path=default_file_path)
     # Initial pipeline for Impact Framework
     # Define the input file path - need to work out hoow this will work if it's uploaded by the user
-    excel_file = r'data\1038-0610-0614-evening.xlsx'
+    excel_file = uploaded_file_path
+    print(excel_file)
+
 
     # Convert the Excel file to a CSV file
     csv_file = convert_xlsx_to_csv(excel_file)
 
     # Define the input and output file paths
     original_CSV_filepath = csv_file
-    modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
+    modified_CSV_filepath = r'data\modified_CSV.csv'
     manifest_filepath = r'manifest1\NEW_z2_G4_Sci.yaml'
 
     # Process the CSV file and extract the duration value, start date, end date, and templates to create the manifest file
@@ -74,7 +82,7 @@ if __name__ == '__main__':
 )
     llm.close() 
     # taking in our raw 'uploaded xlsx file
-    excel_file = r'data\1038-0610-0614-day-larger-figures-test.xlsx'
+    excel_file = excel_file
     # taking in the output yaml file with the carbon emissions data from IF
     yaml_file = r'manifest1\outputs\z2_G4_Sci_Output.yaml'
 
@@ -130,3 +138,4 @@ if __name__ == '__main__':
     index, embeddings = embed_sentences(sentences, model)
 
     generate_question(index, embeddings, model, sentences, questions)
+    

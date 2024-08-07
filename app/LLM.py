@@ -366,6 +366,13 @@ def embed_sentences(sentences, model):
         logging.error(f"An error occurred: {e}")
     return index, embeddings
 
+import re
+def extract_json_from_response(response):
+    # Use regex to find the first JSON array in the response
+    json_match = re.search(r'\[.*?\]', response, re.DOTALL)
+    if json_match:
+        return json_match.group(0)
+    return None
 
 def generate_question(index, embeddings, model, sentences, questions):
     while True:
@@ -546,6 +553,7 @@ def generate_question(index, embeddings, model, sentences, questions):
                 """try getvalue() too"""
                 print(f"Answer: {output_buffer.getvalue()}")
             
+
             else: 
                 prompt = "Here is your context for a question I will ask you:\n"
                 for ind in indices[0]:
@@ -564,7 +572,7 @@ def generate_question(index, embeddings, model, sentences, questions):
                     }
                 ]
                 The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
-                '''
+                IMPORTANT: Remember there are 8 machines in total. Do not leave any out.'''
                 # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
                 prompt += "\nHere is that context again:\n"
                 for ind in indices[0]:
@@ -574,12 +582,25 @@ def generate_question(index, embeddings, model, sentences, questions):
                 response = send_prompt(llm, prompt, interface="ollama")
                 # print(response)
                 json_response = response
+               
                 # remove any pre-amble or post comment from llm by getting location of first [ and last ]
-                json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
+                # json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
+                json_response = extract_json_from_response(response)
+                if json_response is None:
+                    raise ValueError("No valid JSON found in the response.")
+                # prompt+= json_response
                 prompt = "Here is your context for a question I will ask you:\n"
-                j_dict_list = eval(json_response)
-                
-    
+                prompt+= json_response
+                print("prompt:", prompt)
+                j_dict_list = json.loads(json_response)
+                # prompt+= j_dict_list
+               
+                # Remove null values from the parsed JSON
+                for d in j_dict_list:
+                    keys_to_remove = [k for k, v in d.items() if v is None]
+                    for k in keys_to_remove:
+                        del d[k]
+              
                 d_list = []
                 for d in j_dict_list:
                     d_sub_list = []
@@ -595,11 +616,42 @@ def generate_question(index, embeddings, model, sentences, questions):
                     for k, v in d_dict.items():
                         prompt += f"{k}: {v}\n"
                     prompt += "\n"
-            
+                # print("prompt:", prompt)
+                # j_dict_list = eval(json_response)
                 
+                # d_list = []
+                # for d in j_dict_list:
+                #     d_sub_list = []
+                #     for k, v in d.items():
+                #         d_sub_list.append((k,v))
+                #     d_list.append(d_sub_list)
+            
+                # d_list = []
+                # for d in j_dict_list:
+                #     d_sub_list = []
+                #     for k, v in d.items():
+                #         d_sub_list.append((k, v))
+                #     random.shuffle(d_sub_list)
+                #     d_list.append(d_sub_list)
+
+                # for d_sub_list in d_list:
+                #     for k, v in d_sub_list:
+                #         prompt += f"{k}: {v}\n"
+                #     prompt += "\n"
+                # random.shuffle(d_list)
+                # for d in d_list:
+                #     d_dict = dict(d)
+                #     for k, v in d_dict.items():
+                #         prompt += f"{k}: {v}\n"
+                #     prompt += "\n"
+                print("prompt:", prompt)
+            
                 prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
                 #prompt += appendix_prompt
                 prompt+= 'Very important: do NOT keep the answer in JSON. Write it in natural language. \n\n'
+                # prompt+= "\n\nIMPORTANT: Scan the entire context properly to make sure your answer is right."
+                # print('****** PROMPT ******', prompt)
+                
                 response = send_prompt(llm, prompt, interface="ollama", temperature=0.5)
                 print(response)
                 continue
@@ -607,3 +659,5 @@ def generate_question(index, embeddings, model, sentences, questions):
             
         except Exception as e:
             logging.error(f"An error occurred: {e}")
+
+        
