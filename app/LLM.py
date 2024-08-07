@@ -57,27 +57,27 @@ def prepare_excel_file(excel_file):
     replace_dict = {
         '#Cores': 'number of cores',
         'CPU\nHighest\navg': 'central processing unit average utilisation percent',
-        'GPU\navg': 'graphics processing unit average (NVIDIA gpu % Utilization)',
-        'Total MB\nSent': 'total MB sent (All Network Traffic)',
-        'Total MB\nReceived': 'total MB received (All Network Traffic)',
-        'GPU\n#oc > 80%': 'graphics processing unit number of occurrences over 80% (NVIDIA % utilization)',
-        'Core\nHighest\nmax': 'core maximum %',
-        'Core\nHighest\navg': 'core average %',
+        'GPU\navg': 'graphics processing unit average utilisation percent',
+        'Total MB\nSent': 'MB sent across network traffic',
+        'Total MB\nReceived': 'MB received across network traffic',
+        'GPU\n#oc > 80%': 'number of occurrences graphics processing unit went over 80%',
+        'Core\nHighest\nmax': 'core maximum utilisation percent (single core of highest usage)',
+        'Core\nHighest\navg': 'core average utilisation percent (single core of highest usage)',
         'Core\n# oc > 80%': 'core number of occurrences over 80%',
         'Core \nTotal Seconds > 80%': 'core total seconds over 80%',
-        '\nCPU\nTotal Seconds > 80%': 'central processing unit total seconds over 80% (central processing unit % utilization)',
-        'CPU\nHighest\nmax': 'central processing unit Maximum (central processing unit % utilization)',
-        '\nCPU# oc > 80%': 'central processing unit number of occurrences over 80% (central processing unit % utilization)',
-        'Total RAM\n(GB)': 'total RAM GB (memory % utilization)',
-        'max': 'maximum (memory % utilization)',
-        'avg': 'average (memory % utilization)',
-        '#oc > 80%': 'number of occurrences over 80% (gpu memory % utilization)',
+        '\nCPU\nTotal Seconds > 80%': 'central processing unit total seconds over 80%',
+        'CPU\nHighest\nmax': 'central processing unit maximum utilisation percent',
+        '\nCPU# oc > 80%': 'number of occurrences central processing unit went over 80%',
+        'Total RAM\n(GB)': 'total RAM capacity in GB',
+        'max': 'maximum memory utilisation percent',
+        'avg': 'average memory utilisation percent',
+        '#oc > 80%': 'number of occurrences GPU memory went over 80%',
         # 'GPU\nmin': 'graphics processing unit minimum (NVIDIA % utilization)', 
-        'GPU\nmax': 'graphics processing unit maximum (NVIDIA % utilization)',
+        'GPU\nmax': 'graphics processing unit maximum utilisation percent',
         'Host Name': 'Machine',
-        # 'MEM\nmax': 'graphics processing unit memory maximum (NVIDIA gpu % utilization)', 
-        # 'MEM\navg': 'graphics processing unit memory average (NVIDIA gpu % utilization)', 
-        # 'MEM\n#oc > 80%': 'GPU memory number of occurrences over 80% (NVIDIA % utilization)',
+        'MEM\nmax': 'graphics processing unit maximum memory utilisation percent', 
+        'MEM\navg': 'graphics processing unit average memory utilisation percent', 
+        'MEM\n#oc > 80%': 'number of occurrences GPU memory went over 80%',
         'Model': 'model',
         'Machine': 'machine'
     }
@@ -94,7 +94,7 @@ def prepare_excel_file(excel_file):
         'tx \n% packet loss\nmin', 'tx \n% packet loss\nmax', 'tx \n% packet loss\navg', 'Read MB\nmin', 'Read MB\nmax',
         'Read MB\navg', 'Write MB\nmin', 'Write MB\nmax', 'Write MB\navg', 'Read IOPs\nmin', 'Read IOPs\nmax',
         'Read IOPs\navg', 'Write IOPs\nmin', 'Write IOPs\nmax', 'Write IOPs\navg', 'Free MB\nmin', 'Free MB\nmax',
-        'Free MB\navg', 'min', 'MEM\nmin', 'GPU\nmin', 'MEM\n#oc > 80%', 'MEM\nmax', 'MEM\navg'
+        'Free MB\navg', 'min', 'MEM\nmin', 'GPU\nmin', 
     ]
 
     # Drop the columns that are not needed 
@@ -108,20 +108,20 @@ def prepare_excel_file(excel_file):
 
 
     """round the values in the column GPU average (NVIDIA % Utilization) to 3 decimal places"""
-    df['graphics processing unit average (NVIDIA gpu % Utilization)'] = df['graphics processing unit average (NVIDIA gpu % Utilization)'].apply(lambda x: round(x, 3))
+    df['graphics processing unit average utilisation percent'] = df['graphics processing unit average utilisation percent'].apply(lambda x: round(x, 3))
     df['central processing unit average utilisation percent'] = df['central processing unit average utilisation percent'].apply(lambda x: round(x, 3))
-    df['core average %'] = df['core average %'].apply(lambda x: round(x, 3))
-    df['core maximum %)'] = df['core maximum %'].apply(lambda x: round(x, 3))
-    df['central processing unit Maximum (central processing unit % utilization)'] = df['central processing unit Maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
-    df['total MB sent (All Network Traffic)'] = df['total MB sent (All Network Traffic)'].apply(lambda x: round(x, 3))
-    df['total MB received (All Network Traffic)'] = df['total MB received (All Network Traffic)'].apply(lambda x: round(x, 3))
-    df['total RAM GB (memory % utilization)'] = df['total RAM GB (memory % utilization)'].apply(lambda x: round(x, 3))
-    df['maximum (memory % utilization)'] = df['maximum (memory % utilization)'].apply(lambda x: round(x, 3))
-    df['average (memory % utilization)'] = df['average (memory % utilization)'].apply(lambda x: round(x, 3))
+    df['core average utilisation percent (single core of highest usage)'] = df['core average utilisation percent (single core of highest usage)'].apply(lambda x: round(x, 3))
+    df['core maximum utilisation percent (single core of highest usage)'] = df['core maximum utilisation percent (single core of highest usage)'].apply(lambda x: round(x, 3))
+    df['central processing unit maximum utilisation percent'] = df['central processing unit maximum utilisation percent'].apply(lambda x: round(x, 3))
+    df['MB sent across network traffic'] = df['MB sent across network traffic'].apply(lambda x: round(x, 3))
+    df['MB received across network traffic'] = df['MB received across network traffic'].apply(lambda x: round(x, 3))
+    df['total RAM capacity in GB'] = df['total RAM capacity in GB'].apply(lambda x: round(x, 3))
+    df['average memory utilisation percent'] = df['average memory utilisation percent'].apply(lambda x: round(x, 3))
+    df['maximum memory utilisation percent'] = df['maximum memory utilisation percent'].apply(lambda x: round(x, 3))
     # df['graphics processing unit minimum (NVIDIA % utilization)'] = df['graphics processing unit minimum (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
-    df['graphics processing unit maximum (NVIDIA % utilization)'] = df['graphics processing unit maximum (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
-    # df['graphics processing unit memory maximum (NVIDIA % utilization)'] = df['graphics processing unit memory maximum (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
-    # df['graphics processing unit memory average (NVIDIA % utilization)'] = df['graphics processing unit memory average (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
+    df['graphics processing unit maximum utilisation percent'] = df['graphics processing unit maximum utilisation percent'].apply(lambda x: round(x, 3))
+    df['graphics processing unit maximum memory utilisation percent'] = df['graphics processing unit maximum memory utilisation percent'].apply(lambda x: round(x, 3))
+    df['graphics processing unit average memory utilisation percent'] = df['graphics processing unit average memory utilisation percent'].apply(lambda x: round(x, 3))
     return df
  
 
@@ -437,7 +437,7 @@ def generate_question(index, embeddings, model, sentences, questions):
         q_embedding = q_embedding.reshape(1, -1)
         
         # Calculate top_k based on 25% of the number of sentences
-        top_k = int(0.15 * len(sentences))
+        top_k = int(0.2 * len(sentences))
         distances, indices = index.search(q_embedding, top_k)
         
         if question_index == 1:
@@ -572,8 +572,9 @@ def generate_question(index, embeddings, model, sentences, questions):
             prompt += "\nHere is that context again:\n"
             for ind in indices[0]:
                 prompt += f"{sentences[ind]}\n"
+            prompt += "If a value is '0', keep it as 0. Do NOT change it otherwise the code will break."
             prompt += "Reminder: VERY IMPORTANT: There are 8 machines in total so your list must have 8 dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all eight are included."
-            # print("prompt:", prompt)
+            print("prompt:", prompt)
             # sys.exit()
             response = send_prompt(llm, prompt, interface="ollama")
             # print(response)
