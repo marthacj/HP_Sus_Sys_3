@@ -56,7 +56,7 @@ def prepare_excel_file(excel_file):
 
     replace_dict = {
         '#Cores': 'number of cores',
-        'CPU\nHighest\navg': 'central processing unit average utilisation',
+        'CPU\nHighest\navg': 'central processing unit average utilisation percent',
         'GPU\navg': 'graphics processing unit average (NVIDIA gpu % Utilization)',
         'Total MB\nSent': 'total MB sent (All Network Traffic)',
         'Total MB\nReceived': 'total MB received (All Network Traffic)',
@@ -109,7 +109,7 @@ def prepare_excel_file(excel_file):
 
     """round the values in the column GPU average (NVIDIA % Utilization) to 3 decimal places"""
     df['graphics processing unit average (NVIDIA gpu % Utilization)'] = df['graphics processing unit average (NVIDIA gpu % Utilization)'].apply(lambda x: round(x, 3))
-    df['central processing unit average utilisation'] = df['central processing unit average utilisation'].apply(lambda x: round(x, 3))
+    df['central processing unit average utilisation percent'] = df['central processing unit average utilisation percent'].apply(lambda x: round(x, 3))
     df['core average %'] = df['core average %'].apply(lambda x: round(x, 3))
     df['core maximum %)'] = df['core maximum %'].apply(lambda x: round(x, 3))
     df['central processing unit Maximum (central processing unit % utilization)'] = df['central processing unit Maximum (central processing unit % utilization)'].apply(lambda x: round(x, 3))
