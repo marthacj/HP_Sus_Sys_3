@@ -7,13 +7,13 @@ import subprocess
 from testing import *
 from CSV_upload import *
 
-questions = ["\n \n \n [0] Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n", 
-                "[1] How much is the total carbon emissions for all the machines?\n", 
-                "[2] Which is the machine that uses GPU most intensively on average?\n", 
-                "[3] Give me a summary of the central processing unit usage for all the machines\n",
-                "[4] Which of the machines do you recommend being moved to the next level up of compute power and why?\n",
-                "[5] What is the central processing unit average utilisation for each machine?\n",
-                "[6] What machine has the highest carbon emission value?\n"]
+questions = ["\n \n \n Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n", 
+                "How much is the total carbon emissions for all the 8 machines?\n", 
+                "Which machine has the GPU highest average?\n", 
+                "Give me a summary of the central processing unit usage for all the machines\n",
+                "Which of the machines do you recommend being moved to the next level up of compute power and why?\n",
+                "What is the central processing unit average utilisation for each machine?\n",
+                "What machine has the highest carbon emission value?\n"]
 
 
 if __name__ == '__main__':
