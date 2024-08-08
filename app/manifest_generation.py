@@ -72,12 +72,22 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
                     start_date = datetime.strptime(start_date_str, date_format)
                     start_date = start_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
                     end_date = datetime.strptime(end_date_str, date_format)
+                    end_date = end_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
                     # Print the datetime objects
                     print("\n\n\nStart Date:", start_date)
                     print("End Date:", end_date)
-                   
-                    break
+                    
+        if 'Analysis Window' in line:
+            # Split the line by commas
+            parts = line.split(',')
+            
+            # Get the first part that contains the relevant information
+            analysis_window = parts[0:6]
+            analysis_window = ', '.join(analysis_window)
+            print(analysis_window)
+            break
+                                      
     
     if duration is None:
         raise ValueError("Duration value not found in the file")
@@ -170,7 +180,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     # Output the modified DataFrame to a new CSV file
     df.to_csv(modified_CSV_filepath, index=False)
     
-    return modified_CSV_filepath, int(duration), start_date, end_date, templates
+    return modified_CSV_filepath, int(duration), start_date, end_date, templates, analysis_window
 
 
 def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templates):
@@ -481,14 +491,14 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
 
 
 if __name__ == '__main__':
-    excel_file = r'data\1038-0610-0614-evening.xlsx'
+    excel_file = r'data\1038-0610-0614-day.xlsx'
     csv_file = convert_xlsx_to_csv(excel_file)
     # Define the input and output file paths
     original_CSV_filepath = csv_file
     modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
     manifest_filepath = r'manifest1\NEW_z2_G4_Sci.yaml'
 
-    modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
+    modified_csv_path, duration, start_date, end_date, templates, analysis_window = process_csv(original_CSV_filepath, modified_CSV_filepath)
     # Generate the manifest file with the extracted duration value
     generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
 
