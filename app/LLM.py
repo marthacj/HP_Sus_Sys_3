@@ -196,7 +196,7 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
     for machine in machine_emissions_list:
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
-                prepared_df.loc[i, 'carbon emissions (gCO2eq)'] = machine['carbon']
+                prepared_df.loc[i, 'carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS'] = machine['carbon']
     """if there is no column called duration, add it to the dataframe  and fill it with the duration value"""
     if 'duration' not in prepared_df.columns:
         prepared_df.insert(2, 'duration (seconds)', pd.NA)
@@ -651,4 +651,59 @@ def generate_question(index, embeddings, model, sentences, questions):
             continue
 
 
+def add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window):
+    # Prepare the duration and date of data collection sentences
+    duration_of_data_collection = 'DURATION: This data was collected over a period of ' + str(duration) + ' seconds, equivalent to ' + str((duration / 60) / 60) + ' hours.'
+    date_of_data_collection = 'DATE OF DATA COLLECTION: Data was collected between ' + start_date[:10] + ' and ' + end_date[:10] + '.'
     
+    # Initialize collection_period with a default value
+    collection_period = "Data collection time is unknown."
+
+    # Split the analysis_window into words and clean up
+    words = analysis_window.split()
+    cleaned_words = []
+    
+    # Replace day abbreviations with full names and remove any unwanted characters
+    for word in words:
+        cleaned_word = word.strip(',."')
+        if cleaned_word == "Mon":
+            cleaned_words.append("Monday")
+        elif cleaned_word == "Tue":
+            cleaned_words.append("Tuesday")
+        elif cleaned_word == "Wed":
+            cleaned_words.append("Wednesday")
+        elif cleaned_word == "Th":
+            cleaned_words.append("Thursday")
+        elif cleaned_word == "Fri":
+            cleaned_words.append("Friday")
+        elif cleaned_word == "Sat":
+            cleaned_words.append("Saturday")
+        elif cleaned_word == "Sun":
+            cleaned_words.append("Sunday")
+        else:
+            cleaned_words.append(word)
+
+    # Iterate through the cleaned words to find the first occurrence of a time
+    for i in range(len(cleaned_words)):
+        word = cleaned_words[i]
+        if word == '8:00':
+            collection_period = "This telemetry data was collected during working days, meaning numbers reflect business hours."
+            break
+        elif word == '20:00':
+            collection_period = "This telemetry was collected at night, meaning numbers more likely reflect downtime. However, this is not guaranteed, as some teams train models at night."
+            break
+
+    # Rebuild the updated analysis_window sentence
+    analysis_window = ' '.join(cleaned_words)
+    days_of_collection = 'This data was collected on the following days: ' + analysis_window + '.'
+
+    # Create the final sentence for the collection period
+    observation_period_time_window_sentence = 'IMPORTANT: ' + collection_period
+
+    # Print the results for debugging purposes
+    print('***', analysis_window)
+    print('***', observation_period_time_window_sentence)
+    print('***', days_of_collection)
+
+    # Append the sentences to the list
+    sentences += [duration_of_data_collection, date_of_data_collection, observation_period_time_window_sentence, days_of_collection]

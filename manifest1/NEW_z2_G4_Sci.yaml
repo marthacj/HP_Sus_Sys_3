@@ -260,9 +260,9 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 0.1068956176778499
+        cpu/utilization: 18.0807847747114
         max-cpu-wattage: 280
-        gpu/utilization: 0.1
+        gpu/utilization: 20.1234
         max-gpu-wattage: 70
         total-MB-sent: 832.1846683778874
         total-MB-received: 1446.804229656907
@@ -275,16 +275,16 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
-        cpu-memory/utilization: 11.83482979649345
-        gpu-memory/utilization: 28.89076923076918
+        cpu-memory/utilization: 12.51275537020771
+        gpu-memory/utilization: 29.44256410256411
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306000
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 0.1642084701261979
+        cpu/utilization: 89.1320136703508
         max-cpu-wattage: 1400
-        gpu/utilization: 0.005641025641025641
+        gpu/utilization: 13.54321
         max-gpu-wattage: 230
         total-MB-sent: 632.0265548067528
         total-MB-received: 1529.862472338883
@@ -297,16 +297,16 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 48
-        cpu-memory/utilization: 7.021152895870969
-        gpu-memory/utilization: 28.42974358974361
+        cpu-memory/utilization: 7.367855254774653
+        gpu-memory/utilization: 28.44307692307695
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370140.0
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 1.408925411333655
+        cpu/utilization: 15.3746751110908
         max-cpu-wattage: 280
-        gpu/utilization: 1.901025641025657
+        gpu/utilization: 4.12108773730133
         max-gpu-wattage: 70
         total-MB-sent: 3757.863341558264
         total-MB-received: 3770.940366416131
@@ -319,16 +319,16 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
-        cpu-memory/utilization: 21.61179130912394
-        gpu-memory/utilization: 15.93538461538465
+        cpu-memory/utilization: 22.17039750277902
+        gpu-memory/utilization: 13.45253976398152
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306000
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 0.274482596921672
+        cpu/utilization: 79.1286194268527
         max-cpu-wattage: 1400
-        gpu/utilization: 0.006676938880328711
+        gpu/utilization: 71.0046153846153
         max-gpu-wattage: 230
         total-MB-sent: 859.6917818945999
         total-MB-received: 2707.836391279287
@@ -341,16 +341,16 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 48
-        cpu-memory/utilization: 6.579248898173702
-        gpu-memory/utilization: 30.29943502824854
+        cpu-memory/utilization: 6.815193461837012
+        gpu-memory/utilization: 31.60666666666659
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370140.0
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 0.2656404420711027
+        cpu/utilization: 76.9876
         max-cpu-wattage: 280
-        gpu/utilization: 0.1676923076923068
+        gpu/utilization: 9.71523858388917
         max-gpu-wattage: 70
         total-MB-sent: 803.9446746331784
         total-MB-received: 17003.17031116769
@@ -363,19 +363,19 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
-        cpu-memory/utilization: 18.23871667406782
-        gpu-memory/utilization: 28.67025641025644
+        cpu-memory/utilization: 19.01565039801557
+        gpu-memory/utilization: 27.53206772703957
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370140.0
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 0.1215987597896913
+        cpu/utilization: 4.09086250394348
         max-cpu-wattage: 280
-        gpu/utilization: 0.006666666666666665
+        gpu/utilization: 52.005641025641
         max-gpu-wattage: 70
-        total-MB-sent: 1907.100414240825
-        total-MB-received: 2480.107864107751
+        total-MB-sent: 1907.203541160656
+        total-MB-received: 2480.276325226691
         instance-type: z2 mini
         machine-code: ld71r18u44cws
         time-reserved: 157788000
@@ -385,16 +385,16 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
-        cpu-memory/utilization: 18.70434439128427
-        gpu-memory/utilization: 29.48666666666664
+        cpu-memory/utilization: 19.80702378147372
+        gpu-memory/utilization: 28.98307692307695
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 306000
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 0.166101130945421
+        cpu/utilization: 30.1355597990441
         max-cpu-wattage: 1400
-        gpu/utilization: 0.004617752693689071
+        gpu/utilization: 14.0030769230769
         max-gpu-wattage: 230
         total-MB-sent: 1063.412555656252
         total-MB-received: 2309.490603607732
@@ -407,19 +407,19 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 48
-        cpu-memory/utilization: 9.854467404098585
-        gpu-memory/utilization: 18.86659825551568
+        cpu-memory/utilization: 10.24147126308064
+        gpu-memory/utilization: 18.18512820512822
       - timestamp: '2024-06-09T23:00:00.000Z'
         device/emissions-embodied: 370140.0
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 1.009326705257337
+        cpu/utilization: 18.8210351144142
         max-cpu-wattage: 280
-        gpu/utilization: 0.8504398826979469
+        gpu/utilization: 37.16543
         max-gpu-wattage: 70
-        total-MB-sent: 216.7675495406835
-        total-MB-received: 360.641580261303
+        total-MB-sent: 216.1334385042923
+        total-MB-received: 360.3143455911674
         instance-type: z2 mini
         machine-code: ld71r18u44ews
         time-reserved: 157788000
@@ -429,5 +429,5 @@ tree:
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
-        cpu-memory/utilization: 11.20676467407934
-        gpu-memory/utilization: 29.03225806451613
+        cpu-memory/utilization: 7.935382685246907
+        gpu-memory/utilization: 29.28301886792453

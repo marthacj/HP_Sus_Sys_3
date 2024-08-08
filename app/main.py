@@ -37,7 +37,7 @@ if __name__ == '__main__':
     manifest_filepath = r'manifest1\NEW_z2_G4_Sci.yaml'
 
     # Process the CSV file and extract the duration value, start date, end date, and templates to create the manifest file
-    modified_csv_path, duration, start_date, end_date, templates = process_csv(original_CSV_filepath, modified_CSV_filepath)
+    modified_csv_path, duration, start_date, end_date, templates, analysis_window = process_csv(original_CSV_filepath, modified_CSV_filepath)
     # Generate the manifest file with the extracted duration value
     generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
 
@@ -96,6 +96,8 @@ if __name__ == '__main__':
 
     # now add the carbon emissions data to the prepared dataframe
     merged_df = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
+  
+   
 
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
@@ -129,8 +131,8 @@ if __name__ == '__main__':
 
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
+    add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window)
     # print(sentences)
-
     # Load the pre-trained model for embedding with SentenceTransformer
     model = SentenceTransformer('multi-qa-mpnet-base-cos-v1')
 
