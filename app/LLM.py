@@ -46,9 +46,9 @@ def prepare_excel_file(excel_file):
     num_columns = len(df.columns)
     if len(headers) != num_columns:
         raise ValueError(f"Length mismatch: Expected {num_columns} columns, but got {len(headers)} headers.")
-    df.insert(2, 'carbon emissions (gCO2eq)', pd.NA)  # You can initialize with pd.NA or any default value
+    df.insert(2, 'carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS', pd.NA)  # You can initialize with pd.NA or any default value
     # Update headers to reflect the new column
-    headers.insert(2, 'carbon emissions (gCO2eq)')  # Insert 'carbon' into the correct position
+    headers.insert(2, 'carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS')  # Insert 'carbon' into the correct position
     # Set the new headers
     df.columns = headers
     # Drop the first two rows which were used for headers
@@ -263,7 +263,7 @@ def csv_to_json(csv_filename, as_json=True):
         headers = next(csvFile)
     
         # Find the index of the 'carbon emissions (gCO2eq)' column
-        carbon_emissions_index = headers.index('carbon emissions (gCO2eq)')
+        carbon_emissions_index = headers.index('carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS')
         
         for row in csvFile:
             row_key = row[0]
@@ -653,12 +653,16 @@ def generate_question(index, embeddings, model, sentences, questions):
 
 def add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window):
     # Prepare the duration and date of data collection sentences
-    duration_of_data_collection = 'DURATION: This data was collected over a period of ' + str(duration) + ' seconds, equivalent to ' + str((duration / 60) / 60) + ' hours.'
     date_of_data_collection = 'DATE OF DATA COLLECTION: Data was collected between ' + start_date[:10] + ' and ' + end_date[:10] + '.'
-    
+    CPU_average_high_context = 'If the central processing unit average utilisation percent is above 85%, it indicates that the machine is under heavy load and may need more resources, like being moved to a higher compute power with more cores. Around 75% is very efficient and should not be moved.'
+    CPU_maximum_high_context = 'If the central processing unit maximum utilisation percent is above 95%, it indicates that the machine is close to performing at maximum compute power which means it may be causing a bottleneck.'
+    CPU_average_low_context = 'If the central processing unit average utilisation percent is below 15%, it indicates that the machine is underutilised and it it would be more cost effective to reduce resources, like a lower compute power. This saves money and is more environmentally friendly which is important to the business.'
+    GPU_average_high_context = 'If the graphics processing unit average utilisation percent is above 85%, it indicates that the machine is under heavy load and may need more resources, like a higher compute power with more cores. Around 75% is very efficient and should not be moved.'
+    GPU_maximum_high_context = 'If the graphics processing unit maximum utilisation percent is above 95%, it indicates that the machine is close to performing at maximum compute power which means it may be causing a bottleneck.'
+    GPU_average_low_context = 'If the graphics processing unit average utilisation percent is below 15%, it indicates that the machine is underutilised and it it would be more cost effective to reduce resources, like a lower compute power. This saves money and is more environmentally friendly which is important to the business.'
+    sustainability_beliefs = 'Sustainable Impact is a business imperative to HP. Reducing waste and carbon footprint is very important. Making sure machines run efficiently is important to reducing carbon emissions.'
     # Initialize collection_period with a default value
     collection_period = "Data collection time is unknown."
-
     # Split the analysis_window into words and clean up
     words = analysis_window.split()
     cleaned_words = []
@@ -692,7 +696,7 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
         elif word == '20:00':
             collection_period = "This telemetry was collected at night, meaning numbers more likely reflect downtime. However, this is not guaranteed, as some teams train models at night."
             break
-
+    duration_of_data_collection = 'DURATION: This data was collected over a period of ' + str(duration) + ' seconds, equivalent to ' + str((duration / 60) / 60) + ' hours. VERY IMPORTANT: ' + collection_period 
     # Rebuild the updated analysis_window sentence
     analysis_window = ' '.join(cleaned_words)
     days_of_collection = 'This data was collected on the following days: ' + analysis_window + '.'
@@ -701,9 +705,10 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     observation_period_time_window_sentence = 'IMPORTANT: ' + collection_period
 
     # Print the results for debugging purposes
-    print('***', analysis_window)
-    print('***', observation_period_time_window_sentence)
-    print('***', days_of_collection)
+    # print('***', analysis_window)
+    # print('***', observation_period_time_window_sentence)
+    # print('***', days_of_collection)
 
     # Append the sentences to the list
-    sentences += [duration_of_data_collection, date_of_data_collection, observation_period_time_window_sentence, days_of_collection]
+    sentences += [duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_high_context, CPU_average_low_context, GPU_average_high_context, GPU_average_low_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs]
+    

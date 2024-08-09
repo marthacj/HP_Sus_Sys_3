@@ -97,8 +97,6 @@ if __name__ == '__main__':
     # now add the carbon emissions data to the prepared dataframe
     merged_df = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
   
-   
-
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
     print(merged_df.columns)
@@ -132,7 +130,8 @@ if __name__ == '__main__':
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
     add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window)
-    # print(sentences)
+    print(sentences)
+
     # Load the pre-trained model for embedding with SentenceTransformer
     model = SentenceTransformer('multi-qa-mpnet-base-cos-v1')
 
