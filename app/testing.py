@@ -1,64 +1,98 @@
-# import unittest
-# from unittest.mock import patch
-# import logging
-# from LLM import *
+import unittest
+from unittest.mock import patch, mock_open
+import os
+from CSV_upload import upload_file_to_application_directory
 
-# import pandas as pd
-
-# # Example DataFrame structure
-# data = {
-#     'question': [
-#         'Can you tell me how much carbon emission is produced by machine ld71r18u44dws?', 
-#                 "How much is the total carbon emissions for all the machines?", 
-#                 "Which is the machine that uses GPU most intensively on average?", 
-#                 "Give me a summary of the central processing unit usage for all the machines",
-#                 "Which of the machines do you recommend being moved to the next level up of compute power and why?\n",
-#                 "What is the central processing unit average utilisation for each machine?",
-#                 "What machine has the highest carbon emission value?" 
-#     ],
-#     'expected_answer': [
-#         '5000 USD', 
-#         '3000 gCO2e', 
-#         # ... other answers
-#     ]
-# }
-
-# df = pd.DataFrame(data)
-
-
-# def extract_json_from_response(response):
-#     try:
-#         json_response = response[response.find('['):response.rfind(']') + 1]
-#         return json_response
-#     except Exception as e:
-#         logging.error(f"Error extracting JSON: {e}")
-#         return None
-
-# class TestGenerateQuestion(unittest.TestCase):
-
-#     @patch('builtins.input', side_effect=['1', '2', '1', '0', 'bye'])
-#     def test_generate_question(self, mock_input):
-#         index = None  # Replace with actual index
-#         embeddings = None  # Replace with actual embeddings
-#         model = None  # Replace with actual model
-#         sentences = [
-#             "Machine ld71r18u44dws has carbon emissions of 513.44 gCO2eq.",
-#             "Machine ld71r16u14ws has carbon emissions of 432.24 gCO2eq.",
-#             "Machine ld71r16u13ws has carbon emissions of 436.22 gCO2eq.",
-#             "Machine ld71r16u15ws has carbon emissions of 435.24 gCO2eq.",
-#             "Machine ld71r18u44ews has carbon emissions of 515.85 gCO2eq."
-#         ]
-#         questions = [
-#             "\n \n \n [0] Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n",
-#             "[1] How much is the total carbon emissions for all the machines?\n",
-#             "[2] Which is the machine that uses GPU most intensively on average?\n",
-#             "[3] Give me a summary of the central processing unit usage for all the machines\n",
-#             "[4] Which of the machines do you recommend being moved to the next level up of compute power and why?\n",
-#             "[5] What is the central processing unit average utilisation for each machine?\n",
-#             "[6] What machine has the highest carbon emission value?\n"
-#         ]
+class TestFileUpload(unittest.TestCase):
+    """This class is used to test the functionality (TEST SCENARIO) of uploading a file to the application directory.
+        It is made up of 7 test cases:
+        Test Case 1: Default File Not Found 
+        Test Case 2: Custom File Not Found
+        Test Case 3: Copy Failure
+        Test Case 4: Invalid File Path
+        Test Case 5: Read Access Denied
+        Test Case 6: Successful Upload and Read Access
+        Test Case 7: Use Default File
+        """
+    @patch('builtins.input', return_value='')
+    @patch('os.path.isfile', return_value=True)
+    @patch('os.makedirs')
+    @patch('shutil.copy')
+    @patch('os.access', return_value=True)
+    def test_upload_default_file(self, mock_access, mock_copy, mock_makedirs, mock_isfile, mock_input):
+        target_dir = 'data/uploaded_excel_files'
+        default_file_path = 'data/1038-0610-0614-day-larger-figures-test.xlsx'
         
-#         generate_question(index, embeddings, model, sentences, questions)
+        result = upload_file_to_application_directory(target_dir, default_file_path)
+        self.assertEqual(result, default_file_path)
+        mock_copy.assert_not_called()
+        mock_makedirs.assert_not_called()
+
+    @patch('builtins.input', return_value='custom_file.xlsx')
+    @patch('os.path.isfile', side_effect=lambda x: x == 'custom_file.xlsx')
+    @patch('os.makedirs')
+    @patch('shutil.copy')
+    @patch('os.access', return_value=True)
+
+    def test_upload_custom_file(self, mock_access, mock_copy, mock_makedirs, mock_isfile, mock_input):
+        target_dir = 'data/uploaded_excel_files'
+        default_file_path = 'data/1038-0610-0614-day-larger-figures-test.xlsx'
+        expected_destination = os.path.join(target_dir, 'uploaded_file.xlsx')
         
-# if __name__ == '__main__':
-#     unittest.main()
+        result = upload_file_to_application_directory(target_dir, default_file_path)
+        self.assertEqual(result, expected_destination)
+        mock_copy.assert_called_once_with('custom_file.xlsx', expected_destination)
+
+    @patch('builtins.input', return_value='')
+    @patch('os.path.isfile', return_value=False)
+    def test_default_file_not_found(self, mock_isfile, mock_input):
+        target_dir = 'data/uploaded_excel_files'
+        default_file_path = 'data/non_existent_file.xlsx'
+        
+        result = upload_file_to_application_directory(target_dir, default_file_path)
+        self.assertIsNone(result)
+
+    @patch('builtins.input', return_value='invalid_file.txt')
+    @patch('os.path.isfile', return_value=False)
+    def test_invalid_custom_file(self, mock_isfile, mock_input):
+        target_dir = 'data/uploaded_excel_files'
+        default_file_path = 'data/1038-0610-0614-day-larger-figures-test.xlsx'
+        
+        result = upload_file_to_application_directory(target_dir, default_file_path)
+        self.assertIsNone(result)
+
+    @patch('builtins.input', return_value='custom_file.xlsx')
+    @patch('os.path.isfile', side_effect=lambda x: x == 'custom_file.xlsx')
+    @patch('os.makedirs', side_effect=OSError("Permission denied"))
+    def test_directory_creation_failure(self, mock_makedirs, mock_isfile, mock_input):
+        target_dir = 'data/uploaded_excel_files'
+        default_file_path = 'data/1038-0610-0614-day-larger-figures-test.xlsx'
+        
+        result = upload_file_to_application_directory(target_dir, default_file_path)
+        self.assertIsNone(result)
+
+    @patch('builtins.input', return_value='custom_file.xlsx')
+    @patch('os.path.isfile', side_effect=lambda x: x == 'custom_file.xlsx')
+    @patch('os.makedirs')
+    @patch('shutil.copy', side_effect=Exception("Copy failed"))
+    def test_file_copy_failure(self, mock_copy, mock_makedirs, mock_isfile, mock_input):
+        target_dir = 'data/uploaded_excel_files'
+        default_file_path = 'data/1038-0610-0614-day-larger-figures-test.xlsx'
+        
+        result = upload_file_to_application_directory(target_dir, default_file_path)
+        self.assertIsNone(result)
+
+    @patch('builtins.input', return_value='custom_file.xlsx')
+    @patch('os.path.isfile', side_effect=lambda x: x == 'custom_file.xlsx')
+    @patch('os.makedirs')
+    @patch('shutil.copy')
+    @patch('os.access', return_value=False)
+    def test_read_access_denied(self, mock_access, mock_copy, mock_makedirs, mock_isfile, mock_input):
+        target_dir = 'data/uploaded_excel_files'
+        default_file_path = 'data/1038-0610-0614-day-larger-figures-test.xlsx'
+        
+        result = upload_file_to_application_directory(target_dir, default_file_path)
+        self.assertIsNone(result)
+
+if __name__ == '__main__':
+    unittest.main()

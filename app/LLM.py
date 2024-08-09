@@ -414,6 +414,8 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
         if user_input.lower() == 'bye':
             print("Goodbye!")
             break
+    
+        question_index = None
         # Check if the input is a digit and within the valid range
         if user_input.isdigit():
             question_index = int(user_input)
@@ -437,7 +439,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
         # Calculate top_k based on 25% of the number of sentences
         top_k = int(0.25 * len(sentences))
         distances, indices = index.search(q_embedding, top_k)
-        if question_index == 1:
+        if question_index is not None and question_index == 1:
             # Step 2 - extract from the rag the values the LLM things are most important to answer the question
             prompt = "Here is your context for a question I will ask you:\n"
             for ind in indices[0]:

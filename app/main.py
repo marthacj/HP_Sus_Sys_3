@@ -22,6 +22,11 @@ if __name__ == '__main__':
     default_file_path = r"data\1038-0610-0614-day-larger-figures-test.xlsx"
     target_dir = r"data\uploaded_excel_files"
     uploaded_file_path = upload_file_to_application_directory(target_dir, default_file_path=default_file_path)
+
+    # Check that the user hasn't quit, and/or that the file was uploaded correctly!
+    if uploaded_file_path is None:
+        print("Exiting the program with no successful file upload.")
+        sys.exit()
     # Initial pipeline for Impact Framework
     # Define the input file path - need to work out hoow this will work if it's uploaded by the user
     excel_file = uploaded_file_path
