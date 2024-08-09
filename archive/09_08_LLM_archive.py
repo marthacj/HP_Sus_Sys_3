@@ -223,7 +223,7 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
                 prepared_df.loc[i, 'timestamp'] = machine['timestamp']
-    return prepared_df, machine_ids
+    return prepared_df
 
 
 def append_sum_row(df, column_name, label='total carbon emissions in gCO2eq'):
@@ -374,8 +374,7 @@ def extract_json_from_response(response):
         return json_match.group(0)
     return None
 
-def generate_question(index, embeddings, model, sentences, questions, machine_ids):
-    num_of_machines = str(len(machine_ids))
+def generate_question(index, embeddings, model, sentences, questions):
     while True:
         profile_input = input("""\n\n\n What is your job role? Enter 1, 2, or 3:\n
                             (1) Director of IT \n\n
@@ -438,6 +437,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
         top_k = int(0.25 * len(sentences))
         distances, indices = index.search(q_embedding, top_k)
         if question_index == 1:
+            print("RUNNIGNG Q1")
             # Step 2 - extract from the rag the values the LLM things are most important to answer the question
             prompt = "Here is your context for a question I will ask you:\n"
             for ind in indices[0]:
@@ -459,7 +459,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 }
             ]
             The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
-            VERY IMPORTANT: There are ''' + num_of_machines + ' machines in this total. Check the context properly. Do not leave any out. ' + num_of_machines + ' MACHINES therefore ' + num_of_machines + ' dictionaries in the list.'
+            VERY IMPORTANT: There are 8 machines in this total. Check the context properly. Do not leave any out. EIGHT MACHINES therefore 8 dictionaries in the list'''
             # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
             prompt += "\nHere is that context again:\n"
             for ind in indices[0]:
@@ -580,8 +580,8 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 }
             ]
             The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
-            VERY IMPORTANT: There are ''' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ''' are included.
-            \n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON.'''
+            VERY IMPORTANT: There are 8 machines in total so your list must have 8 dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all eight are included.
+            DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. Do NOT change it otherwise the code will break.'''
             # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
             prompt += "\nHere is that context again:\n"
             for ind in indices[0]:
@@ -589,8 +589,8 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                     prompt += f"{sentences[ind]}\n"
                 else:
                     print(f"Warning: Index {ind} is out of range.")
-            prompt += "\n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON."
-            prompt += '\n\n Reminder: VERY IMPORTANT: There are ' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ' are included.'
+            prompt += "VERY IMPORTANT: If a value is '0', keep it as 0. Do NOT change it otherwise the code will break."
+            prompt += "Reminder: VERY IMPORTANT: There are 8 machines in total so your list must have 8 dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all eight are included."
             print("prompt:", prompt)
             # sys.exit()
             response = send_prompt(llm, prompt, interface="ollama")
@@ -687,7 +687,7 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     GPU_maximum_high_context = 'If the graphics processing unit maximum utilisation percent is above 95%, it indicates that the machine is close to performing at maximum compute power which means it may be causing a bottleneck.'
     GPU_average_low_context = 'If the graphics processing unit average utilisation percent is below 15%, it indicates that the machine is underutilised and it it would be more cost effective to reduce resources, like a lower compute power. This saves money and is more environmentally friendly which is important to the business.'
     sustainability_beliefs = 'Sustainable Impact is a business imperative to HP. Reducing waste and carbon footprint is very important. Making sure machines run efficiently is important to reducing carbon emissions.'
-    carbon_explanation = "The embodied carbon for each machine is produced during the manufacturing and have already been proportionately distributed over the observed duration, using the Green Software Foundation's Impact Framework to calculate this. Carbon Emissions already includes embodied and operational. DO NOT ADD EMBODIED AND OPERATIONAL AND CARBON - IT IS ALREADY INCLUDED."
+    # carbon_explanation = "The embodied carbon for each machine is produced during the manufacturing and have already been proportionately distributed over the observed duration, using the Green Software Foundation's Impact Framework to calculate this."
     # Initialize collection_period with a default value
     collection_period = "Data collection time is unknown."
     # Split the analysis_window into words and clean up
@@ -738,5 +738,5 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     # print('***', days_of_collection)
 
     # Append the sentences to the list
-    sentences += [duration_of_operational_carbon, duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_high_context, CPU_average_low_context, GPU_average_high_context, GPU_average_low_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs, carbon_explanation]
+    sentences += [duration_of_operational_carbon, duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_high_context, CPU_average_low_context, GPU_average_high_context, GPU_average_low_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs]
     
