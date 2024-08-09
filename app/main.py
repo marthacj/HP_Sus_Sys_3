@@ -95,7 +95,7 @@ if __name__ == '__main__':
     machine_emissions_list, machine_id_dict = extract_data_from_yaml(emissions_reference_data)
 
     # now add the carbon emissions data to the prepared dataframe
-    merged_df = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
+    merged_df, machine_ids = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
   
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
@@ -138,5 +138,5 @@ if __name__ == '__main__':
     # Embed the sentences using the model
     index, embeddings = embed_sentences(sentences, model)
 
-    generate_question(index, embeddings, model, sentences, questions)
+    generate_question(index, embeddings, model, sentences, questions, machine_ids)
     
