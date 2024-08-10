@@ -1,6 +1,5 @@
 import sys, os 
 from sentence_transformers import SentenceTransformer
-from llama_cpp import Llama
 from manifest_generation import *
 from LLM import *
 import subprocess
@@ -76,16 +75,16 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Pipeline to run after running the termimnal commmand to run the Impact Framework
-    model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
+#     model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 
-    llm = Llama(
-        model_path=model_path,
-#         temperature=0.1,
-          n_ctx=16000,
-          n_gpu_layers=-1,
-          verbose=True,
-)
-    llm.close() 
+#     llm = Llama(
+#         model_path=model_path,
+# #         temperature=0.1,
+#           n_ctx=16000,
+#           n_gpu_layers=-1,
+#           verbose=True,
+# )
+#     llm.close() 
     # taking in our raw 'uploaded xlsx file
     excel_file = excel_file
     # taking in the output yaml file with the carbon emissions data from IF
@@ -134,7 +133,7 @@ if __name__ == '__main__':
 
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
-    add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window)
+    add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines=str(len(machine_ids)))
     print(sentences)
 
     # Load the pre-trained model for embedding with SentenceTransformer
@@ -143,5 +142,5 @@ if __name__ == '__main__':
     # Embed the sentences using the model
     index, embeddings = embed_sentences(sentences, model)
 
-    generate_question(index, embeddings, model, sentences, questions, machine_ids)
+    generate_question(index, embeddings, model, sentences, questions, machine_ids, model_name)
     
