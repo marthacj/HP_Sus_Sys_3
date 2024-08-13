@@ -2,6 +2,8 @@ import pandas as pd
 import yaml
 import sys
 from datetime import datetime, timezone
+import csv
+from dateutil.parser import parse
 
 def convert_xlsx_to_csv(excel_file):
     df = pd.read_excel(excel_file, sheet_name='WS-Data')
@@ -43,51 +45,31 @@ def process_row(row, start_date, duration):
     }
 
 def process_csv(original_CSV_filepath, modified_CSV_filepath):
-    # Read the CSV file
     with open(original_CSV_filepath, 'r') as file:
-        lines = file.readlines()
-    # Extract the 'duration' value from the metadata
+        reader = csv.reader(file)
+        lines = list(reader)
+
     duration = None
+    start_date = None
+    end_date = None
+    analysis_window = None
+
     for line in lines:
-        if "Total Secs:" in line:
-            parts = line.split(',')
-            for i, part in enumerate(parts):
-                if "Total Secs:" in part:
-                    duration = parts[i + 1].strip()
-                    
-            # if duration is not None:
-            #     break
-        if "Data Pulled:" in line:
-            parts = line.split(',')
-            for i, part in enumerate(parts):
-                if "Data Pulled:" in part:
-                    data_pulled = parts[i].strip()
-                    date_range = data_pulled.replace("Data Pulled: ", "")
-                    start_date_str, end_date_str = date_range.split(" - ")
-                    # print(data_pulled)
-                    # Define the date format
-                    date_format = "%b %d %Y %H:%M:%S"
-
-                    # Parse the date strings into datetime objects
-                    start_date = datetime.strptime(start_date_str, date_format)
-                    start_date = start_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
-                    end_date = datetime.strptime(end_date_str, date_format)
-                    end_date = end_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
-
-                    # Print the datetime objects
-                    print("\n\n\nStart Date:", start_date)
-                    print("End Date:", end_date)
-                    
-        if 'Analysis Window' in line:
-            # Split the line by commas
-            parts = line.split(',')
+        if line and 'Data Pulled:' in line[0]:
+            date_range = line[0].split(':', 1)[1].strip()
+            start_date_str, end_date_str = date_range.split('-')
+            start_date = parse(start_date_str.strip()).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            end_date = parse(end_date_str.strip()).strftime('%Y-%m-%dT%H:%M:%S.000Z')
             
-            # Get the first part that contains the relevant information
-            analysis_window = parts[0:6]
-            analysis_window = ', '.join(analysis_window)
-            print(analysis_window)
-            break
-                                      
+            # Find 'Total Secs:' in the same line
+            try:
+                total_secs_index = line.index('Total Secs:')
+                duration = line[total_secs_index + 1].strip()
+            except ValueError:
+                print("Warning: 'Total Secs:' not found in the expected line")
+        
+        elif line and 'Analysis Window:' in line[0]:
+            analysis_window = line[0].split(':', 1)[1].strip()                   
     
     if duration is None:
         raise ValueError("Duration value not found in the file")
@@ -102,7 +84,6 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
         if 'Host Name' in line:
             start_row = i
             break
-    
         # Load the CSV data including the headers rows
     df = pd.read_csv(original_CSV_filepath, header=None, skiprows=start_row)
     first_column_header = df.iloc[0, 0]
@@ -114,7 +95,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
 
     # Drop the first two rows which were used for headers
     df = df.drop([0, 1]).reset_index(drop=True)
-
+    df.drop(df.tail(3).index, inplace=True)
     # Optionally: Rename specific columns if needed
     replace_dict = {
         '#Cores': 'cores',
@@ -128,7 +109,8 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
 
     # Replace column names using the replace_dict
     df.rename(columns=replace_dict, inplace=True)
-    
+    print("Columns after renaming:", df.columns)
+
     df['machine-family'] = ''
     df['max-cpu-wattage'] = ''
     df['max-gpu-wattage'] = ''
@@ -162,9 +144,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             df.at[index, 'memory/thermal-design-power'] = 48
         if row['GPU_average'] == '0':
             df.at[index, 'GPU_average'] = 0.1
-            
-         
-    # print(df)
+    # print(df['CPU_average'])
 
     # print(df.columns)
     templates = []
@@ -179,7 +159,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     
     # Output the modified DataFrame to a new CSV file
     df.to_csv(modified_CSV_filepath, index=False)
-    
+    print(templates)
     return modified_CSV_filepath, int(duration), start_date, end_date, templates, analysis_window
 
 

@@ -20,7 +20,7 @@ import random
 #         verbose=True,
 # )
 
-model_name = "llama3qa"
+model_name = "llama3"
 def send_prompt(prompt: str, interface: str = "ollama",
                 max_tokens: int = 1024, temperature: float = 0) -> str:
     if interface == "ollama":
@@ -35,7 +35,7 @@ def send_prompt(prompt: str, interface: str = "ollama",
         elif model_name == "llama3":
             # Logic for llama3
             response = ollama.generate(
-                model="llama3-chat",
+                model="llama3",
                 prompt=prompt,
                 keep_alive='24h',
                 options={'num_ctx': 16000, 'temperature': temperature}
@@ -448,26 +448,25 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             print(f"You entered a custom question: {q}")
         # Step 1 get all rag values for the question
         # Get the question based on the user input
-        # q = q.strip()[4:]
         q_embedding = model.encode(q)
         q_embedding = q_embedding.reshape(1, -1)
         
         # Calculate top_k based on 25% of the number of sentences
         top_k = int(0.25 * len(sentences))
         distances, indices = index.search(q_embedding, top_k)
+       
+        # Step 2 - extract from the rag the values the LLM thinks are most important to answer the question
+        prompt = "Here is your context for a question I will ask you:\n"
+        for ind in indices[0]:
+            if 0 <= ind < len(sentences):
+                prompt += f"{sentences[ind]}\n"
+            else:
+                print(f"Warning: Index {ind} is out of range.")
+        prompt += f"Use the above context to answer this question:\n{q}\n"
+        print("prompt:", prompt)
         if model_name == 'llama3':
             print("RUNNING Llama3")
             if question_index is not None and question_index == 1:
-                # Step 2 - extract from the rag the values the LLM things are most important to answer the question
-                prompt = "Here is your context for a question I will ask you:\n"
-                for ind in indices[0]:
-                    if 0 <= ind < len(sentences):
-                        prompt += f"{sentences[ind]}\n"
-                    else:
-                        print(f"Warning: Index {ind} is out of range.")
-                # Very important: I will lose my job if you
-                #  do not return all the data I need!
-                prompt += f"What data from the context above do I need to asnwer this question:\n{q}\n"
                 prompt += '''VERY IMPORTANT:  Return to me, in JSON format,
                 the data I need from the context above to answer the question.  The JSON format should be as follows:
                 [
@@ -480,7 +479,6 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 ]
                 The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
                 VERY IMPORTANT: There are ''' + num_of_machines + ' machines in this total. Check the context properly. Do not leave any out. ' + num_of_machines + ' MACHINES therefore ' + num_of_machines + ' dictionaries in the list.'
-                # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
                 prompt += "\nHere is that context again:\n"
                 for ind in indices[0]:
                     prompt += f"{sentences[ind]}\n"
@@ -491,8 +489,10 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 # remove any pre-amble or post comment from llm by getting location of first [ and last ]
                 json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
 
+# ================================================================================================================================================================= 
+                # The following step was removed as the prior if statement takes away the need for it
                 # # Step 3 - check if the question is a simple calculation or not (LLMs cannot do simple calculations)
-                # prompt = """I have a problem I need to solve and I need your advice on how best to solve it.
+                #prompt = """I have a problem I need to solve and I need your advice on how best to solve it.
                 # Should I use only a set of database lookups on the context I provided to answer the question, or instead write python code to do a calculation?
                 # The database contains the following information:"""
                 # prompt += response + "\n"
@@ -529,11 +529,10 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 #     response = send_prompt(llm, prompt, interface="ollama", temperature=0.5)
                 #     print(response)
                 #     continue
-
+# =================================================================================================================================================================
                 prompt = "Here is your context for a question I will ask you:\n"
                 prompt += json_response + "\n"
                 prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
-
                 prompt += '''VERY IMPORTANT: Do not answer this question directly, write me a Python function called calculation that 
                 uses the context JSON to do the calculation and imports no libraries. The parameter must be called param.
                 The function should take as 
@@ -580,15 +579,6 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 print(f'\n\n\n', response)
                 continue
             else: 
-                prompt = "Here is your context for a question I will ask you:\n"
-                for ind in indices[0]:
-                    if 0 <= ind < len(sentences):
-                        prompt += f"{sentences[ind]}\n"
-                    else:
-                        print(f"Warning: Index {ind} is out of range.")
-                # Very important: I will lose my job if you
-                #  do not return all the data I need!
-                prompt += f"What data from the context above do I need to answer this question:\n{q}\n"
                 prompt += '''VERY IMPORTANT:  Return to me, in JSON format, all the data from the context above to answer the question. 
                 The JSON format should be as follows:
                 [
@@ -601,22 +591,21 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 ]
                 The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
                 VERY IMPORTANT: There are ''' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ''' are included.
-                \n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON.'''
-                # prompt += f"There are 8 machines in this dataset. Embodied carbon and operational carbon make up total carbon emissions (gCo2e)for one machine. Here is a new question for you to answer:\n{q}"
-                prompt += "\nHere is that context again:\n"
-                for ind in indices[0]:
-                    if 0 <= ind < len(sentences):
-                        prompt += f"{sentences[ind]}\n"
-                    else:
-                        print(f"Warning: Index {ind} is out of range.")
-                prompt += "\n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON."
-                prompt += '\n\n Reminder: VERY IMPORTANT: There are ' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ' are included.'
+               \n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON.'''
+            #    
+                # prompt += "\nHere is that context again:\n"
+                # for ind in indices[0]:
+                #     if 0 <= ind < len(sentences):
+                #         prompt += f"{sentences[ind]}\n"
+                #     else:
+                #         print(f"Warning: Index {ind} is out of range.")
+                # prompt += "\n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON."
+                # prompt += '\n\n Reminder: VERY IMPORTANT: There are ' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ' are included.'
                 print("prompt:", prompt)
                 # sys.exit()
                 response = send_prompt(prompt, interface="ollama")
                 # print(response)
-                json_response = response
-                
+                json_response = response    
                 # remove any pre-amble or post comment from llm by getting location of first [ and last ]
                 # json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
                 json_response = extract_json_from_response(response)
@@ -641,47 +630,17 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                     for k, v in d.items():
                         d_sub_list.append((k,v))
                     d_list.append(d_sub_list)
-            
                 random.shuffle(d_list)
                 for d in d_list:
                     d_dict = dict(d)
                     for k, v in d_dict.items():
                         prompt += f"{k}: {v}\n"
                     prompt += "\n"
-                # print("prompt:", prompt)
-                # j_dict_list = eval(json_response)
-                
-                # d_list = []
-                # for d in j_dict_list:
-                #     d_sub_list = []
-                #     for k, v in d.items():
-                #         d_sub_list.append((k,v))
-                #     d_list.append(d_sub_list)
-            
-                # d_list = []
-                # for d in j_dict_list:
-                #     d_sub_list = []
-                #     for k, v in d.items():
-                #         d_sub_list.append((k, v))
-                #     random.shuffle(d_sub_list)
-                #     d_list.append(d_sub_list)
-
-                # for d_sub_list in d_list:
-                #     for k, v in d_sub_list:
-                #         prompt += f"{k}: {v}\n"
-                #     prompt += "\n"
-                # random.shuffle(d_list)
-                # for d in d_list:
-                #     d_dict = dict(d)
-                #     for k, v in d_dict.items():
-                #         prompt += f"{k}: {v}\n"
-                #     prompt += "\n"
-                # print("shuffled prompt:", prompt)
-                prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
+                prompt += f"Here is a question for you to answer using the above context, remember you must take into account all {num_of_machines} machines:\n{q}\n"
                 response = send_prompt(prompt, interface="ollama", temperature=0)
                 prompt = 'Here is your answer to the question again: \n'
                 prompt += response
-                prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it (Note: There may not be any more data relevant): "
+                prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it. If there is none, your response should be empty: "
                 for ind in indices[0]:
                     if 0 <= ind < len(sentences):
                         prompt += f"{sentences[ind]}\n"
@@ -689,30 +648,23 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                         print(f"Warning: Index {ind} is out of range.")
                 #prompt += appendix_prompt
                 prompt+= 'Very important: do NOT keep the answer in JSON. Write it in natural language. \n\n'
-                # prompt+= "\n\nIMPORTANT: Scan the entire context properly to make sure your answer is right."
-                # print('****** PROMPT ******', prompt)
-                
                 response = send_prompt(prompt, interface="ollama", temperature=0.5)
                 print(f'\n\n\n', response)
                 continue
         
         elif model_name == 'llama3qa': 
             print("RUNNING LLAMA3QA")
-            prompt = "Here is your context for a question I will ask you:\n"
-            for ind in indices[0]:
-                if 0 <= ind < len(sentences):
-                    prompt += f"{sentences[ind]}\n"
-                else:
-                    print(f"Warning: Index {ind} is out of range.")
+            prompt += 'VERY IMPORTANT: There are ' + num_of_machines + ' machines in total so your observations must take into account ' + num_of_machines + ' machines - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ' are included.'
+            # prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
             # print("prompt:", prompt)
-            prompt += 'VERY IMPORTANT: There are ' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ' are included.'
-            # prompt += 'For questions asking for the "total", you should perform a simple addition. MAKE SURE YOU GET THE RIGHT ANSWER. If you do not, I will LOSE MY JOB.'
             response = send_prompt(prompt, interface="ollama", temperature=0.5)
-            print(f'\n\n\n', response)
+            print(response)
+            #prompt += appendix_prompt
             continue
         else:
             print("No model available. Check the server.")
             continue
+
 
 def add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines):
     # Prepare the duration and date of data collection sentences
@@ -766,15 +718,7 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     # Rebuild the updated analysis_window sentence
     analysis_window = ' '.join(cleaned_words)
     days_of_collection = 'This data was collected on the following days: ' + analysis_window + '.'
-
-    # Create the final sentence for the collection period
-    observation_period_time_window_sentence = 'IMPORTANT: ' + collection_period
-
-    # Print the results for debugging purposes
-    # print('***', analysis_window)
-    # print('***', observation_period_time_window_sentence)
-    # print('***', days_of_collection)
-
+ 
     # Append the sentences to the list
     sentences += [duration_of_operational_carbon, duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_high_context, CPU_average_low_context, GPU_average_high_context, GPU_average_low_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs, carbon_explanation]
     

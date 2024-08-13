@@ -158,6 +158,24 @@ class TestProcessCSV(unittest.TestCase):
         self.assertEqual(first_template['timestamp'], start_date)
         self.assertEqual(first_template['duration'], duration)
         self.assertIn(first_template['instance-type'], ['z2 mini', 'Z4R G4'])
+    
+        for index, row in df.iterrows():
+            template = templates[index]
+            
+            # assert float(row['CPU_average']) == template['cpu/utilization'], \
+            #     f"Mismatch in CPU utilization for row {index}"
+            
+            # Assert CPU memory utilization
+            assert row['CPU_memory_average'] == template['cpu-memory/utilization'], \
+                f"Mismatch in CPU memory utilization for row {index}"
+            
+            # Assert GPU memory utilization
+            assert row['GPU_memory_average'] == template['gpu-memory/utilization'], \
+                f"Mismatch in GPU memory utilization for row {index}"
+            
+            # Assert GPU utilization
+            assert row['GPU_average'] == template['gpu/utilization'], \
+                f"Mismatch in GPU utilization for row {index}"
 
 
 
