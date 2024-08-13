@@ -4,12 +4,13 @@ import sys
 from datetime import datetime, timezone
 import csv
 from dateutil.parser import parse
+import os
 
 def convert_xlsx_to_csv(excel_file):
     df = pd.read_excel(excel_file, sheet_name='WS-Data')
 
     # Define the output CSV file path
-    csv_file = r'data\1038-0610-0614-evening.csv'
+    csv_file = r'data\uploaded_file.csv'
 
     # Write the DataFrame to a CSV file
     df.to_csv(csv_file, index=False)
@@ -161,7 +162,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     df.to_csv(modified_CSV_filepath, index=False)
     print(templates)
     return modified_CSV_filepath, int(duration), start_date, end_date, templates, analysis_window
-
+    
 
 def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templates):
     # Define the manifest structure
@@ -469,6 +470,19 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
     with open(manifest_filepath, 'w', encoding='utf-8') as file:
         yaml.dump(manifest, file, default_flow_style=False, sort_keys=False)
 
+def safe_generate_manifest(manifest_filepath, modified_csv_path, duration, templates):
+    try:
+        generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+        return True
+    except Exception as e:
+        print(f"Error generating manifest: {str(e)}")
+        return False
+
+def safe_print_file_info(filepath, description):
+    if os.path.exists(filepath):
+        print(f"{description} has been created at {filepath}")
+    else:
+        print(f"Warning: {description} was not found at {filepath}")
 
 if __name__ == '__main__':
     excel_file = r'data\1038-0610-0614-day.xlsx'
@@ -480,7 +494,7 @@ if __name__ == '__main__':
 
     modified_csv_path, duration, start_date, end_date, templates, analysis_window = process_csv(original_CSV_filepath, modified_CSV_filepath)
     # Generate the manifest file with the extracted duration value
-    generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+    safe_generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
 
     print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
     print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")

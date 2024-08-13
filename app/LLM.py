@@ -6,7 +6,6 @@ import sys, os
 import faiss
 import numpy as np
 import logging
-from sentence_transformers import SentenceTransformer
 import pickle
 import ollama
 import random
@@ -170,7 +169,7 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
     lowest_children_level = yaml_data['tree']['children']['child']['children']
     lowest_children_level.update(yaml_data['tree']['children']['child']['children'])
     """dump the yaml to file for debug"""
-    with open('embeddings\yaml_dump.txt', 'w') as f:
+    with open(r'embeddings\yaml_dump.txt', 'w') as f:
         yaml.dump(lowest_children_level, f)
     for i, machine in enumerate(lowest_children_level):
         for child in lowest_children_level[machine]['outputs']:
@@ -343,9 +342,9 @@ def embed_sentences(sentences, model):
     try:
     # sentences += ['CPU','cpu','CPU CPU','cpu cpu','something cpu','something cpu something','CPU CPU CPU','cpu cpu cpu','CPU CPU CPU CPU','cpu cpu cpu cpu','CPU CPU CPU CPU CPU something','something cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu cpu']
         """if embeddings.pickle exists, load the embeddings from file  and skip the encoding step"""
-        if os.path.exists('embeddings\embeddings.pickle'):   
+        if os.path.exists(r'embeddings\embeddings.pickle'):   
             # Load the embeddings from file
-            with open('embeddings\embeddings.pickle', 'rb') as file:
+            with open(r'embeddings\embeddings.pickle', 'rb') as file:
                 embeddings = pickle.load(file)
                 rebuild_faiss_index = False
         else:
@@ -354,7 +353,7 @@ def embed_sentences(sentences, model):
             rebuild_faiss_index = True
             
             """save the encodings to pickle file"""
-            with open('embeddings\embeddings.pickle', 'wb') as file:
+            with open(r'embeddings\embeddings.pickle', 'wb') as file:
                 pickle.dump(embeddings, file)
     # Convert embeddings to a numpy array
         embeddings = np.array(embeddings)

@@ -38,25 +38,67 @@ if __name__ == '__main__':
     # Define the input and output file paths
     original_CSV_filepath = csv_file
     modified_CSV_filepath = r'data\modified_CSV.csv'
-    manifest_filepath = r'manifest1\NEW_z2_G4_Sci.yaml'
+    manifest_filepath = r'manifest1\z2_G4_Sci.yaml'
 
     # Process the CSV file and extract the duration value, start date, end date, and templates to create the manifest file
     modified_csv_path, duration, start_date, end_date, templates, analysis_window = process_csv(original_CSV_filepath, modified_CSV_filepath)
     # Generate the manifest file with the extracted duration value
-    generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+    # generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
 
-    print("\n\n★ ☆ ★ ☆ Generating manifest file with your data... ★ ☆ ★ ☆\n\n")
+    # print("\n\n★ ☆ ★ ☆ Generating manifest file with your data... ★ ☆ ★ ☆\n\n")
 
-    print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
-    print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
-    print(f"Extracted duration value: {duration}")
+    # print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
+    # print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
+    # print(f"Extracted duration value: {duration}")
 
-    current_dir = os.getcwd()
-    print(f"Current working directory: {current_dir}")
+    # current_dir = os.getcwd()
+    # print(f"Current working directory: {current_dir}")
 
-    # Construct absolute paths
-    manifest_path = os.path.join(current_dir, 'manifest1', 'NEW_z2_G4_Sci.yaml')
-    output_path = os.path.join(current_dir, 'manifest1', 'outputs', 'z2_G4_Sci_Output')
+    # # Construct absolute paths
+    # manifest_path = os.path.join(current_dir, 'manifest1', 'z2_G4_Sci.yaml')
+    # output_path = os.path.join(current_dir, 'manifest1', 'outputs', 'z2_G4_Sci_Output')
+    try:
+        manifest_success = safe_generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+
+        print("\n\n★ ☆ ★ ☆ Attempting to generate manifest file with telemetry data... ★ ☆ ★ ☆\n\n")
+
+        safe_print_file_info(modified_CSV_filepath, "Modified CSV file")
+        safe_print_file_info(manifest_filepath, "Manifest file")
+
+        if duration is not None:
+            print(f"This telemetry data was observed over a period of: {duration} seconds")
+        else:
+            print("Warning: Duration value was not extracted successfully")
+
+        current_dir = os.getcwd()
+        print(f"Current working directory: {current_dir}")
+
+        # Construct absolute paths
+        manifest_path = os.path.abspath(os.path.join(current_dir, 'manifest1', 'z2_G4_Sci.yaml'))
+        output_path = os.path.abspath(os.path.join(current_dir, 'manifest1', 'outputs', 'z2_G4_Sci_Output'))
+
+        # Check if paths exist
+        if os.path.exists(manifest_path):
+            print(f"Manifest file found at: {manifest_path}")
+        else:
+            print(f"Warning: Manifest file not found at: {manifest_path}")
+
+        if os.path.exists(output_path):
+            print(f"Output directory found at: {output_path}")
+
+        # If manifest generation was successful, try to read and print some info
+        if manifest_success:
+            try:
+                with open(manifest_filepath, 'r') as f:
+                    manifest_data = yaml.safe_load(f)
+                print(f"Manifest file successfully read. Contains {len(manifest_data)} top-level keys.")
+            except Exception as e:
+                print(f"Warning: Could not read manifest file: {str(e)}")
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
+        print("The program will continue running...")
+        
 
     # Construct the command with absolute paths
     command = f'ie --manifest "{manifest_path}" --output "{output_path}"'
@@ -75,17 +117,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Pipeline to run after running the termimnal commmand to run the Impact Framework
-#     model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
-
-#     llm = Llama(
-#         model_path=model_path,
-# #         temperature=0.1,
-#           n_ctx=16000,
-#           n_gpu_layers=-1,
-#           verbose=True,
-# )
-#     llm.close() 
-    # taking in our raw 'uploaded xlsx file
+    # taking in our raw 'uploaded.xlsx' file
     excel_file = excel_file
     # taking in the output yaml file with the carbon emissions data from IF
     yaml_file = r'manifest1\outputs\z2_G4_Sci_Output.yaml'
@@ -105,7 +137,7 @@ if __name__ == '__main__':
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
     print(merged_df.columns)
     # Save the merged DataFrame to a CSV file 
-    merged_df.to_csv('embeddings\merged_df.csv', index=False)
+    merged_df.to_csv(r'embeddings\merged_df.csv', index=False)
     # def round_floats(x):
     #     return round(x, 2) if isinstance(x, float) else x
     # merged_df = merged_df.applymap(round_floats)
@@ -118,11 +150,11 @@ if __name__ == '__main__':
     flat_dict = flatten(data_dict_json)
     dict_string = stringify(flat_dict)
 
-    with open('embeddings\data.txt', 'w') as f:
+    with open(r'embeddings\data.txt', 'w') as f:
         f.write(dict_string)
 
     # Read the stringified flat dictionary from the file
-    with open('embeddings\data.txt', 'r') as f:
+    with open(r'embeddings\data.txt', 'r') as f:
         read_back_string = f.read()
 
     print("Stringified flat dictionary read back from the file:")
