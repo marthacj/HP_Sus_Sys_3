@@ -123,20 +123,20 @@ def prepare_excel_file(excel_file):
 
 
     """round the values in the column GPU average (NVIDIA % Utilization) to 3 decimal places"""
-    df['graphics processing unit average utilisation percent'] = df['graphics processing unit average utilisation percent'].apply(lambda x: round(x, 3))
-    df['central processing unit average utilisation percent'] = df['central processing unit average utilisation percent'].apply(lambda x: round(x, 3))
-    df['core average utilisation percent (single core of highest usage)'] = df['core average utilisation percent (single core of highest usage)'].apply(lambda x: round(x, 3))
-    df['core maximum utilisation percent (single core of highest usage)'] = df['core maximum utilisation percent (single core of highest usage)'].apply(lambda x: round(x, 3))
-    df['central processing unit maximum utilisation percent'] = df['central processing unit maximum utilisation percent'].apply(lambda x: round(x, 3))
-    df['MB sent across network traffic'] = df['MB sent across network traffic'].apply(lambda x: round(x, 3))
-    df['MB received across network traffic'] = df['MB received across network traffic'].apply(lambda x: round(x, 3))
-    df['total RAM capacity in GB'] = df['total RAM capacity in GB'].apply(lambda x: round(x, 3))
-    df['average memory utilisation percent'] = df['average memory utilisation percent'].apply(lambda x: round(x, 3))
-    df['maximum memory utilisation percent'] = df['maximum memory utilisation percent'].apply(lambda x: round(x, 3))
+    df['graphics processing unit average utilisation percent'] = df['graphics processing unit average utilisation percent'].apply(lambda x: round(x, 2))
+    df['central processing unit average utilisation percent'] = df['central processing unit average utilisation percent'].apply(lambda x: round(x, 2))
+    df['core average utilisation percent (single core of highest usage)'] = df['core average utilisation percent (single core of highest usage)'].apply(lambda x: round(x, 2))
+    df['core maximum utilisation percent (single core of highest usage)'] = df['core maximum utilisation percent (single core of highest usage)'].apply(lambda x: round(x, 2))
+    df['central processing unit maximum utilisation percent'] = df['central processing unit maximum utilisation percent'].apply(lambda x: round(x, 2))
+    df['MB sent across network traffic'] = df['MB sent across network traffic'].apply(lambda x: round(x, 2))
+    df['MB received across network traffic'] = df['MB received across network traffic'].apply(lambda x: round(x, 2))
+    df['total RAM capacity in GB'] = df['total RAM capacity in GB'].apply(lambda x: round(x, 2))
+    df['average memory utilisation percent'] = df['average memory utilisation percent'].apply(lambda x: round(x, 2))
+    df['maximum memory utilisation percent'] = df['maximum memory utilisation percent'].apply(lambda x: round(x, 2))
     # df['graphics processing unit minimum (NVIDIA % utilization)'] = df['graphics processing unit minimum (NVIDIA % utilization)'].apply(lambda x: round(x, 3))
-    df['graphics processing unit maximum utilisation percent'] = df['graphics processing unit maximum utilisation percent'].apply(lambda x: round(x, 3))
-    df['graphics processing unit maximum memory utilisation percent'] = df['graphics processing unit maximum memory utilisation percent'].apply(lambda x: round(x, 3))
-    df['graphics processing unit average memory utilisation percent'] = df['graphics processing unit average memory utilisation percent'].apply(lambda x: round(x, 3))
+    df['graphics processing unit maximum utilisation percent'] = df['graphics processing unit maximum utilisation percent'].apply(lambda x: round(x, 2))
+    df['graphics processing unit maximum memory utilisation percent'] = df['graphics processing unit maximum memory utilisation percent'].apply(lambda x: round(x, 2))
+    df['graphics processing unit average memory utilisation percent'] = df['graphics processing unit average memory utilisation percent'].apply(lambda x: round(x, 2))
     return df
  
 
@@ -567,14 +567,14 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 print(f"Answer in gcO2eq: {output_buffer.getvalue()}")
                 prompt = f'Here is your answer to the question {q}: {output_buffer.getvalue()}\n'
                 # prompt += output_buffer.getvalue()
-                prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it (Note: TThere may not be any more data relecvant): "
+                prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it.  IMPORTANT: If there is none, your next response should be empty.: "
                 for ind in indices[0]:
                     if 0 <= ind < len(sentences):
                         prompt += f"{sentences[ind]}\n"
                     else:
                         print(f"Warning: Index {ind} is out of range.")
                 prompt += f"Your response must be in plain English, including the value {output_buffer.getvalue()} in gCO2eq. Do not include any code in your response."
-                response = send_prompt(prompt, interface="ollama", temperature=0.5)
+                response = send_prompt(prompt, interface="ollama", temperature=0)
                 print(f'\n\n\n', response)
                 continue
             else: 
@@ -590,7 +590,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 ]
                 The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
                 VERY IMPORTANT: There are ''' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ''' are included.
-               \n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON.'''
+               \n\n THIS IS VERY IMPORTANT: If a value is not in the context, do not include it in the JSON. DO NOT INCLUDE NULL VALUES IN THE JSON.'''
             #    
                 # prompt += "\nHere is that context again:\n"
                 # for ind in indices[0]:
@@ -639,14 +639,14 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 response = send_prompt(prompt, interface="ollama", temperature=0)
                 prompt = 'Here is your answer to the question again: \n'
                 prompt += response
-                prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it. If there is none, your response should be empty: "
+                prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it: "
                 for ind in indices[0]:
                     if 0 <= ind < len(sentences):
                         prompt += f"{sentences[ind]}\n"
                     else:
                         print(f"Warning: Index {ind} is out of range.")
                 #prompt += appendix_prompt
-                prompt+= 'Very important: do NOT keep the answer in JSON. Write it in natural language. \n\n'
+                prompt+= 'Very important: do NOT keep the answer in JSON. Write it in natural language. IMPORTANT: If there is none mroe relevant data, your next response should be EMPTY \n\n'
                 response = send_prompt(prompt, interface="ollama", temperature=0.5)
                 print(f'\n\n\n', response)
                 continue

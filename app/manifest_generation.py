@@ -110,7 +110,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
 
     # Replace column names using the replace_dict
     df.rename(columns=replace_dict, inplace=True)
-    print("Columns after renaming:", df.columns)
+    # print("Columns after renaming:", df.columns)
 
     df['machine-family'] = ''
     df['max-cpu-wattage'] = ''
@@ -119,8 +119,8 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     df['device/emissions-embodied'] = ''
     df['time-reserved'] = '157788000'
     df['grid/carbon-intensity'] = 31
-    df['device/expected-lifespan'] = 157788000
-    df['time-reserved'] = 157788000
+    df['device/expected-lifespan'] = 157784760
+    df['time-reserved'] = 157784760
     df['network-intensity'] = 0.000124
     df['memory/thermal-design-power'] = ''
 
@@ -160,7 +160,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     
     # Output the modified DataFrame to a new CSV file
     df.to_csv(modified_CSV_filepath, index=False)
-    print(templates)
+    # print(templates)
     return modified_CSV_filepath, int(duration), start_date, end_date, templates, analysis_window
     
 
@@ -195,7 +195,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                       'method': 'linear',
                       'x':  [0, 10, 50, 100] ,
                       'y':  [0.12, 0.32, 0.75, 1.02] ,
-                    'input-parameter': "cpu/utilization",
+                    'input-parameter': "cpu-utilization",
                     'output-parameter': "cpu-factor" }
                 },
                 'cpu-factor-to-wattage': { # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
@@ -426,14 +426,15 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                 'child': {
                     'pipeline': [
         'group-by',
-        # 'interpolate',
-        # 'cpu-factor-to-wattage',
+        'cpu-utilisation-percentage-to-decimal',
+        'interpolate',
+        'cpu-factor-to-wattage',
         'gpu-utilisation-percentage-to-decimal',
         'gpu-utilisation-to-wattage',
         'gpu-wattage-times-duration',
         'gpu-wattage-to-energy-kwh',
-        'cpu-utilisation-percentage-to-decimal',
-        'cpu-utilisation-to-wattage',
+        
+        # 'cpu-utilisation-to-wattage',
         'cpu-wattage-times-duration',
         'cpu-wattage-to-energy-kwh',
         'cpu-memory-utilisation-percentage-to-decimal',

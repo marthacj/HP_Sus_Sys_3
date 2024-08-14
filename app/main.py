@@ -132,10 +132,9 @@ if __name__ == '__main__':
 
     # now add the carbon emissions data to the prepared dataframe
     merged_df, machine_ids = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
-  
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
-    print(merged_df.columns)
+    # print(merged_df.columns)
     # Save the merged DataFrame to a CSV file 
     merged_df.to_csv(r'embeddings\merged_df.csv', index=False)
     # def round_floats(x):
@@ -176,3 +175,6 @@ if __name__ == '__main__':
 
     generate_question(index, embeddings, model, sentences, questions, machine_ids, model_name)
     
+
+    
+
