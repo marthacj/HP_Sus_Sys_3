@@ -132,6 +132,14 @@ if __name__ == '__main__':
 
     # now add the carbon emissions data to the prepared dataframe
     merged_df, machine_ids = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
+    columns_to_exclude = ['model', 'timestamp', 'Machine', 'number of cores']
+    columns_to_label = [col for col in merged_df.columns if col not in columns_to_exclude]
+    print("\nColumns to label:", columns_to_label)
+    # Apply the labeling function to selected columns
+    for col in columns_to_label:
+        merged_df[col] = merged_df[col].astype(float)
+    for col in columns_to_label:
+        merged_df[col] = label_max_min(merged_df[col])
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
     # print(merged_df.columns)
@@ -165,7 +173,7 @@ if __name__ == '__main__':
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
     add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines=str(len(machine_ids)))
-    print(sentences)
+    # print(sentences)
 
     # Load the pre-trained model for embedding with SentenceTransformer
     model = SentenceTransformer('multi-qa-mpnet-base-cos-v1')
