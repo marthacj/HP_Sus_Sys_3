@@ -7,7 +7,7 @@ from testing import *
 from CSV_upload import *
 
 questions = ["\n \n \n Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n", 
-                "How much is the total carbon emissions for all the 8 machines?\n", 
+                "How much is the total carbon emissions for all the machines?\n", 
                 "Which machine has the GPU highest average utilisation?\n", 
                 "Give me a summary of the central processing unit usage for all the machines\n",
                 "Which of the machines do you recommend being moved to the next level up of compute power and why?\n",
@@ -132,9 +132,11 @@ if __name__ == '__main__':
 
     # now add the carbon emissions data to the prepared dataframe
     merged_df, machine_ids = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
+    # print('machine_ids:', machine_ids)
+    
     columns_to_exclude = ['model', 'timestamp', 'Machine', 'number of cores']
     columns_to_label = [col for col in merged_df.columns if col not in columns_to_exclude]
-    print("\nColumns to label:", columns_to_label)
+    # print("\nColumns to label:", columns_to_label)
     # Apply the labeling function to selected columns
     for col in columns_to_label:
         merged_df[col] = merged_df[col].astype(float)
@@ -173,6 +175,8 @@ if __name__ == '__main__':
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
     add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines=str(len(machine_ids)))
+
+   
     # print(sentences)
 
     # Load the pre-trained model for embedding with SentenceTransformer

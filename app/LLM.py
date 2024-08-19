@@ -349,19 +349,19 @@ def embed_sentences(sentences, model):
     try:
     # sentences += ['CPU','cpu','CPU CPU','cpu cpu','something cpu','something cpu something','CPU CPU CPU','cpu cpu cpu','CPU CPU CPU CPU','cpu cpu cpu cpu','CPU CPU CPU CPU CPU something','something cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu cpu']
         """if embeddings.pickle exists, load the embeddings from file  and skip the encoding step"""
-        if os.path.exists(r'embeddings\embeddings.pickle'):   
-            # Load the embeddings from file
-            with open(r'embeddings\embeddings.pickle', 'rb') as file:
-                embeddings = pickle.load(file)
-                rebuild_faiss_index = False
-        else:
+        # if os.path.exists(r'embeddings\embeddings.pickle'):   
+        #     # Load the embeddings from file
+        #     with open(r'embeddings\embeddings.pickle', 'rb') as file:
+        #         embeddings = pickle.load(file)
+        #         rebuild_faiss_index = False
+        # else:
             # Encode sentences to get their embeddings
-            embeddings = model.encode(sentences)
-            rebuild_faiss_index = True
-            
-            """save the encodings to pickle file"""
-            with open(r'embeddings\embeddings.pickle', 'wb') as file:
-                pickle.dump(embeddings, file)
+        embeddings = model.encode(sentences)
+        rebuild_faiss_index = True
+        
+        """save the encodings to pickle file"""
+        with open(r'embeddings\embeddings.pickle', 'wb') as file:
+            pickle.dump(embeddings, file)
     # Convert embeddings to a numpy array
         embeddings = np.array(embeddings)
 
@@ -398,6 +398,7 @@ def extract_json_from_response(response):
 
 def generate_question(index, embeddings, model, sentences, questions, machine_ids, model_name):
     num_of_machines = str(len(machine_ids))
+    # print(f"Number of machines: {num_of_machines}")     
     while True:
         profile_input = input("""\n\n\n What is your job role? Enter 1, 2, or 3:\n
                             (1) Director of IT \n\n
@@ -469,7 +470,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             else:
                 print(f"Warning: Index {ind} is out of range.")
         prompt += f"Use the above context to answer this question:\n{q}\n"
-        print("prompt:", prompt)
+        # print("prompt:", prompt)
         if model_name == 'llama3':
             print("RUNNING Llama3")
             if question_index is not None and question_index == 1:
@@ -488,7 +489,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 prompt += "\nHere is that context again:\n"
                 for ind in indices[0]:
                     prompt += f"{sentences[ind]}\n"
-                print("prompt:", prompt)
+                # print("prompt:", prompt)
                 response = send_prompt(prompt, interface="ollama")
                 print(response)
                 json_response = response
@@ -646,6 +647,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 # prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
                 prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
                 prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
+                # prompt += "You are exceptional at mathematics and must perform addition perfectly."
                 response = send_prompt(prompt, interface="ollama", temperature=0)
                 # prompt = 'Here is your answer to the question again: \n'
                 # prompt += response
@@ -665,6 +667,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
         elif model_name == 'llama3qa': 
             print("RUNNING LLAMA3QA")
             prompt += 'VERY IMPORTANT: There are ' + num_of_machines + ' machines in total so your observations must take into account ' + num_of_machines + ' machines - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ' are included.'
+            prompt += "You are exceptional at mathematics and must perform addition perfectly. To do so, only add two numbers at a time and find a total value by applying this method."
             # prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
             # print("prompt:", prompt)
             response = send_prompt(prompt, interface="ollama", temperature=0.5)

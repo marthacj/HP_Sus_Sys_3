@@ -96,7 +96,9 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
 
     # Drop the first two rows which were used for headers
     df = df.drop([0, 1]).reset_index(drop=True)
+    # print(df)
     df.drop(df.tail(3).index, inplace=True)
+    # print(df)
     # Optionally: Rename specific columns if needed
     replace_dict = {
         '#Cores': 'cores',
