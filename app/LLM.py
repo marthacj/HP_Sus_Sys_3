@@ -643,7 +643,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             #         for k, v in d_dict.items():
             #             prompt += f"{k}: {v}\n"
             #         prompt += "\n"
-                prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
+                # prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
                 prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
                 prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
                 response = send_prompt(prompt, interface="ollama", temperature=0)
