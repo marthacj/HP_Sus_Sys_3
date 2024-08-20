@@ -8,7 +8,6 @@ import numpy as np
 import logging
 import pickle
 import ollama
-import random
 import io
 
 # model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
@@ -150,7 +149,7 @@ def prepare_excel_file(excel_file):
 def load_data_files(yaml_file, return_yaml: bool = False) -> tuple:
     # Load yaml file
     with open(yaml_file, 'r') as f:
-        """this data is what is put in <BACKGROUND> tag in the prompt"""
+        # this data is what is put in <BACKGROUND> tag in the prompt - before RAG was implemented
         emissions_reference_data = yaml.load(f, Loader=yaml.SafeLoader)
         emissions_reference_data_str = yaml.dump(emissions_reference_data)
         # split by first occureance of word defaults and take [1]
@@ -171,30 +170,29 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
     """iterate through the bottom children and extract the data"""
     machine_emissions_list = []
     machine_id_dict = {}
-    """machine_dict = {}"""
     lowest_children_level = yaml_data['tree']['children']['child']['children']
     lowest_children_level.update(yaml_data['tree']['children']['child']['children'])
-    """dump the yaml to file for debug"""
+    # dump the yaml to file for debug
     with open(r'embeddings\yaml_dump.txt', 'w') as f:
         yaml.dump(lowest_children_level, f)
     for i, machine in enumerate(lowest_children_level):
         for child in lowest_children_level[machine]['outputs']:
-            """convert child to a dictionary"""
+            # convert child to a dictionary
             child = dict(child)
-            """only pull out values for keys timestamp, instance-type, sci """
+            # only pull out values for keys timestamp, instance-type, sci
             child = {k: v for k, v in child.items() if k in ['timestamp', 'instance-type', 'sci', 'carbon-embodied', 'carbon-operational', 'duration', 'carbon']}
-            """ convert timestamp to a UTC datetime not an object"""
+            # convert timestamp to a UTC datetime not an object
             child['timestamp'] = pd.to_datetime(child['timestamp'], utc=True)
-            """convert that to a string"""
+            # convert that to a string
             child['timestamp'] = child['timestamp'].strftime('%Y-%m-%d')
-            """round sci to 6 dp"""
+            # round sci to 6 dp
             child['sci'] = round(child['sci'], 2)
             child['carbon'] = round(child['carbon'], 2)
-            """pull out value for carbon embodied, carbon operational, and duration"""
+            # pull out value for carbon embodied, carbon operational, and duration
             child['carbon-embodied'] = round(child['carbon-embodied'], 2)
             child['carbon-operational'] = round(child['carbon-operational'], 2)
             child['duration'] = child['duration']
-            """letters 7 to 10 are unique to each machine"""
+            # letters 7 to 10 are unique to each machine
             # child['machine-id'] = str(i)
             # machine_id_dict[machine[6:]] = str(i)
             machine_id_dict[machine] = str(i)
@@ -209,8 +207,6 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
 
 def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict):
     machine_ids = list(machine_id_dict.keys())
-
-    # Update machine_emissions_list to include machine IDs
     for idx, item in enumerate(machine_emissions_list):
         if idx < len(machine_ids):
             item['machine'] = machine_ids[idx]
@@ -218,9 +214,7 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
                 prepared_df.loc[i, 'carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS'] = machine['carbon']
-    """if there is no column called duration, add it to the dataframe  and fill it with the duration value"""
-    # if 'duration' not in prepared_df.columns:
-    #     prepared_df.insert(2, 'duration (seconds)', pd.NA)
+    # if there is no column called duration, add it to the dataframe  and fill it with the duration value
     for machine in machine_emissions_list:
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
@@ -237,9 +231,7 @@ def merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:
                 prepared_df.loc[i, 'operational carbon (gCO2eq)'] = machine['carbon-operational'] 
-    """do the same for timestamp"""
-    # if 'timestamp' not in prepared_df.columns:
-    #     prepared_df.insert(2, 'timestamp', pd.NA)
+    #do the same for timestamp
     for machine in machine_emissions_list:
         for i in range(len(machine_ids)):
             if prepared_df.loc[i, 'Machine'] == machine['machine']:

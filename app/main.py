@@ -5,6 +5,8 @@ from LLM import *
 import subprocess
 from testing import *
 from CSV_upload import *
+import time
+import requests
 
 questions = ["\n \n \n Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n", 
                 "How much is the total carbon emissions for all the machines?\n", 
@@ -14,9 +16,34 @@ questions = ["\n \n \n Can you tell me how much carbon emission is produced by m
                 "What is the central processing unit average utilisation for each machine?\n",
                 "What machine has the highest carbon emission value?\n"]
 
+def start_server():
+    script_path = os.path.join(os.path.dirname(__file__), 'start_server.bat')
+    # print(f"\n\nScript path: {script_path}")  
+    if os.path.exists(script_path):
+        # print("\n\nScript found")
+        print("Starting Ollama server...")
+        print("Please wait for the server to start... \n\n") 
+        subprocess.Popen([script_path], shell=True)
+        # Wait for the server to start
+        time.sleep(5)  # Adjust this delay if needed
+    else:
+        print("\n\nScript to start Ollama server not found.")
+
+def check_server():
+    try:
+        response = requests.get('http://127.0.0.1:11434')  # Adjust URL and port as needed
+        if response.status_code == 200:
+            print("\n\n★ ☆ ★ ☆ Server is up and running ★ ☆ ★ ☆ \n\n")
+        else:
+            print(f"Server returned status code {response.status_code}.\n\n")
+    except requests.ConnectionError:
+        print("Failed to connect to the server. It might not be running. Please check your configuration.")
+        print("Exiting the program without starting the server...")
+        sys.exit()
 
 if __name__ == '__main__':
-
+    start_server()
+    check_server()
     # If the user does not input any file path, the default test file path will be used
     default_file_path = r"data\1038-0610-0614-day-larger-figures-test.xlsx"
     target_dir = r"data\uploaded_excel_files"
@@ -27,7 +54,7 @@ if __name__ == '__main__':
         print("Exiting the program with no successful file upload.")
         sys.exit()
     # Initial pipeline for Impact Framework
-    # Define the input file path - need to work out hoow this will work if it's uploaded by the user
+    # Define the input file path - need to work out how this will work if it's uploaded by the user
     excel_file = uploaded_file_path
     print(excel_file)
 
