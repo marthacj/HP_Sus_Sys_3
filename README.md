@@ -42,4 +42,6 @@ Please run the following command to to install dependencies:
 
 pip install r-requirements.txt 
 
-This application is compatible Windows 11 system, using NVIDIA GPU with Cuda. Due to GPU memory requirements, this application has not be tested on another OS. 
+This application is compatible Windows 11 system, using NVIDIA GPU with Cuda. Please ensure you have configured your machine with Cuda: https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html
+
+Due to GPU memory requirements, this application has not be tested on another OS. 
