@@ -20,7 +20,7 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
 
 
 ## Installation
-## Impact Framework
+### Impact Framework
 Install the Impact Framework globally using npm.
 
 npm install -g @grnsft/if
@@ -32,7 +32,7 @@ npm install -g @grnsft/if-unofficial-plugins
 
 The system will automatically generate and run customised manifest files per user upload. 
 
-## Ollama
+### Ollama
 
 The application comes packaged with the Ollama.exe file in the main app directory. It also includes the Llama3-8B, Llam3-Chat-QA and Mistral-7B models in the same directory (used for testing and evaluation). The system will set the Ollama Models Environment variable to this location. Please refer to Ollama for more help regarding specific installation queries: https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server
 
