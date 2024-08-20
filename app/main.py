@@ -41,22 +41,17 @@ if __name__ == '__main__':
     manifest_filepath = r'manifest1\z2_G4_Sci.yaml'
 
     # Process the CSV file and extract the duration value, start date, end date, and templates to create the manifest file
-    modified_csv_path, duration, start_date, end_date, templates, analysis_window = process_csv(original_CSV_filepath, modified_CSV_filepath)
-    # Generate the manifest file with the extracted duration value
-    # generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
+    try:
+    # Your main code execution
+        modified_csv_path, duration, start_date, end_date, templates, analysis_window = process_csv(original_CSV_filepath, modified_CSV_filepath)
+    except ValueError as e:
+        # Print only the error message without the traceback
+        print('\n\n')
+        print(e)
+        print("\n\nYour file is not of the right structure. Please check the file and try again.\n\n")
+        print("Exiting the program with no successful manifest generation.\n\n")
+        sys.exit()
 
-    # print("\n\n★ ☆ ★ ☆ Generating manifest file with your data... ★ ☆ ★ ☆\n\n")
-
-    # print(f"CSV file has been modified and saved as {modified_CSV_filepath}")
-    # print(f"Manifest file has been created with the extracted duration value at {manifest_filepath}")
-    # print(f"Extracted duration value: {duration}")
-
-    # current_dir = os.getcwd()
-    # print(f"Current working directory: {current_dir}")
-
-    # # Construct absolute paths
-    # manifest_path = os.path.join(current_dir, 'manifest1', 'z2_G4_Sci.yaml')
-    # output_path = os.path.join(current_dir, 'manifest1', 'outputs', 'z2_G4_Sci_Output')
     try:
         manifest_success = safe_generate_manifest(manifest_filepath, modified_csv_path, duration, templates)
 
@@ -66,12 +61,12 @@ if __name__ == '__main__':
         safe_print_file_info(manifest_filepath, "Manifest file")
 
         if duration is not None:
-            print(f"This telemetry data was observed over a period of: {duration} seconds")
+            print(f"\nThis telemetry data was observed over a period of: {duration} seconds")
         else:
-            print("Warning: Duration value was not extracted successfully")
+            print("\nWarning: Duration value was not extracted successfully")
 
         current_dir = os.getcwd()
-        print(f"Current working directory: {current_dir}")
+        print(f"\nCurrent working directory: {current_dir}")
 
         # Construct absolute paths
         manifest_path = os.path.abspath(os.path.join(current_dir, 'manifest1', 'z2_G4_Sci.yaml'))
@@ -79,19 +74,19 @@ if __name__ == '__main__':
 
         # Check if paths exist
         if os.path.exists(manifest_path):
-            print(f"Manifest file found at: {manifest_path}")
+            print(f"\nManifest file found at: {manifest_path}")
         else:
-            print(f"Warning: Manifest file not found at: {manifest_path}")
+            print(f"\nWarning: Manifest file not found at: {manifest_path}")
 
         if os.path.exists(output_path):
-            print(f"Output directory found at: {output_path}")
+            print(f"\nOutput directory found at: {output_path}")
 
         # If manifest generation was successful, try to read and print some info
         if manifest_success:
             try:
                 with open(manifest_filepath, 'r') as f:
                     manifest_data = yaml.safe_load(f)
-                print(f"Manifest file successfully read. Contains {len(manifest_data)} top-level keys.")
+                print(f"\nManifest file successfully read. Contains {len(manifest_data)} top-level keys.")
             except Exception as e:
                 print(f"Warning: Could not read manifest file: {str(e)}")
 
@@ -122,34 +117,39 @@ if __name__ == '__main__':
     # taking in the output yaml file with the carbon emissions data from IF
     yaml_file = r'manifest1\outputs\z2_G4_Sci_Output.yaml'
 
-    # cleaned up exel file into a datafrarme ready to add relevant carbon emissions data
-    prepared_df = prepare_excel_file(excel_file)
-   
-    # load the outputs from the manifest file
-    emissions_reference_data = load_data_files(yaml_file)
-    # extract only the data we intend to add to the dataframe for the LLM
-    machine_emissions_list, machine_id_dict = extract_data_from_yaml(emissions_reference_data)
+    try:
+        # Load and prepare the Excel file
+        prepared_df = prepare_excel_file(excel_file)
 
-    # now add the carbon emissions data to the prepared dataframe
-    merged_df, machine_ids = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
-    # print('machine_ids:', machine_ids)
+        # Load emissions reference data and perform further operations
+        emissions_reference_data = load_data_files(yaml_file)
+        machine_emissions_list, machine_id_dict = extract_data_from_yaml(emissions_reference_data)
+
+        # Merge data into a single DataFrame
+        merged_df, machine_ids = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
+
+    except ValueError as e:
+        # Handle errors by notifying the user
+        print(f"Error: {e}. Please upload a correctly formatted file.")
+
     
     columns_to_exclude = ['model', 'timestamp', 'Machine', 'number of cores']
     columns_to_label = [col for col in merged_df.columns if col not in columns_to_exclude]
-    # print("\nColumns to label:", columns_to_label)
+   
+
     # Apply the labeling function to selected columns
     for col in columns_to_label:
         merged_df[col] = merged_df[col].astype(float)
     for col in columns_to_label:
         merged_df[col] = label_max_min(merged_df[col])
+
     # Append the total carbon emissions row
     # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
     # print(merged_df.columns)
+
     # Save the merged DataFrame to a CSV file 
     merged_df.to_csv(r'embeddings\merged_df.csv', index=False)
-    # def round_floats(x):
-    #     return round(x, 2) if isinstance(x, float) else x
-    # merged_df = merged_df.applymap(round_floats)
+
     csv_filename = r'embeddings\merged_df.csv'
 
     # convert the csv file to a json file
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     with open(r'embeddings\data.txt', 'r') as f:
         read_back_string = f.read()
 
-    print("Stringified flat dictionary read back from the file:")
+    print("\nStringified flat dictionary read back from the file.")
     # print(read_back_string)
 
     # Path to data.txt file
@@ -175,8 +175,6 @@ if __name__ == '__main__':
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
     add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines=str(len(machine_ids)))
-
-   
     # print(sentences)
 
     # Load the pre-trained model for embedding with SentenceTransformer

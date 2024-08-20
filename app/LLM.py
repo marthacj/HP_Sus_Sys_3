@@ -9,6 +9,7 @@ import logging
 import pickle
 import ollama
 import random
+import io
 
 # model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 # llm = Llama(
@@ -98,6 +99,12 @@ def prepare_excel_file(excel_file):
     }
 
     df.rename(columns=replace_dict, inplace=True)
+    required_columns = list(replace_dict.keys())
+    missing_columns = [col for col in required_columns if col not in df.columns]
+
+    if missing_columns == []:
+        raise ValueError(f"The following required columns are missing after processing the file: {', '.join(missing_columns)}")
+
     df.loc[df['number of cores'] == 24, 'model'] = 'z2 mini'
     df.loc[df['number of cores'] == 28, 'model'] = 'Z4R G4'
     drop_names = [
@@ -119,7 +126,6 @@ def prepare_excel_file(excel_file):
 
     # for testing with all columns, for fairness must also round those cols
     # df[drop_names] = df[drop_names].apply(lambda x: round(x, 3))
-
 
 
     """round the values in the column GPU average (NVIDIA % Utilization) to 3 decimal places"""
@@ -348,7 +354,7 @@ def read_sentences_from_file(sentences_file_path):
 def embed_sentences(sentences, model):
     try:
     # sentences += ['CPU','cpu','CPU CPU','cpu cpu','something cpu','something cpu something','CPU CPU CPU','cpu cpu cpu','CPU CPU CPU CPU','cpu cpu cpu cpu','CPU CPU CPU CPU CPU something','something cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu','CPU CPU CPU CPU CPU CPU CPU CPU CPU','cpu cpu cpu cpu cpu cpu cpu cpu cpu']
-        """if embeddings.pickle exists, load the embeddings from file  and skip the encoding step"""
+        # if embeddings.pickle exists, load the embeddings from file  and skip the encoding step - removed as system needs to rebuild embeddings for each start updepending on file upload
         # if os.path.exists(r'embeddings\embeddings.pickle'):   
         #     # Load the embeddings from file
         #     with open(r'embeddings\embeddings.pickle', 'rb') as file:
@@ -370,16 +376,16 @@ def embed_sentences(sentences, model):
         index = faiss.IndexFlatL2(d)
         
         """if faiss_index.bin exists, load the index from file and skip the add step"""
-        if os.path.exists('faiss_index.bin') and not rebuild_faiss_index:
-            index = faiss.read_index('faiss_index.bin')
-            print("\n\nFAISS index loaded from 'faiss_index.bin'")
-        else:
-            # Add embeddings to the index
-            index.add(embeddings)
-            print(f"Number of sentences indexed: {index.ntotal}")
-            # Save the FAISS index to disk
-            faiss.write_index(index, 'faiss_index.bin')
-            print("FAISS index saved to 'faiss_index.bin'\n\n")
+        # if os.path.exists('faiss_index.bin') and not rebuild_faiss_index:
+        #     index = faiss.read_index('faiss_index.bin')
+        #     print("\n\nFAISS index loaded from 'faiss_index.bin'")
+        # else:
+        # Add embeddings to the index
+        index.add(embeddings)
+        print(f"Number of sentences indexed: {index.ntotal}")
+        # Save the FAISS index to disk
+        faiss.write_index(index, 'faiss_index.bin')
+        print("FAISS index saved to 'faiss_index.bin'\n\n")
         # Print the embeddings
         # for sentence, embedding in zip(sentences, embeddings):
         #     print(f"Sentence: {sentence}")
@@ -398,34 +404,37 @@ def extract_json_from_response(response):
 
 def generate_question(index, embeddings, model, sentences, questions, machine_ids, model_name):
     num_of_machines = str(len(machine_ids))
+    # This is where the different personas can be catered to, however removed due to being more complex than anticipateed in terms of its effect on the accuracy of the model
+    # =================================================================================================================================================================
     # print(f"Number of machines: {num_of_machines}")     
-    while True:
-        profile_input = input("""\n\n\n What is your job role? Enter 1, 2, or 3:\n
-                            (1) Director of IT \n\n
-                            (2) IT Admin\n\n
-                            (3) N/A 
-                            Type 'exit' to quit.\n""")
+    # while True:
+    #     profile_input = input("""\n\n\n What is your job role? Enter 1, 2, or 3:\n
+    #                         (1) Director of IT \n\n
+    #                         (2) IT Admin\n\n
+    #                         (3) N/A 
+    #                         Type 'exit' to quit.\n""")
         
-        if profile_input == '1' or profile_input == '2' or profile_input == '3':
-            print("Adjusting my outputs...")
-            break
-        elif profile_input.lower() == 'exit':
-            print("Sorry to see you go so soon.")
-            break
-        else:
-            print("Invalid input, please try again.")
-        if profile_input.lower() == '1':
-            prompt_appendix = """You are speaking with the Director of IT. 
-                            Their goal is to optimise resource allocation and utilisation, and to ensure cost-effectiveness. 
-                            If asking for summary of compute, give a high overview and whether or not any of the machines should move up or down compute power.
-                            """
-        elif profile_input == '2':
-            prompt_appendix = """You are speaking with the IT Admin.
-                                Their goal is to manage and maintain the machines and their storage. 
-                                If asking for a summary, need a detailed breakdown of each machine. 
-                                """
-        elif profile_input.lower() == '3':
-            prompt_appendix = ''
+    #     if profile_input == '1' or profile_input == '2' or profile_input == '3':
+    #         print("Adjusting my outputs...")
+    #         if profile_input == '1':
+    #             prompt_appendix = """The user you are speaking with is the Director of IT. 
+    #                             Their goal is to optimise resource allocation and utilisation, and to ensure cost-effectiveness. 
+    #                             If asking for summary of compute, you must give a high overview and whether or not any of the machines should move up or down compute power.
+    #                             """
+    #         elif profile_input == '2':
+    #             prompt_appendix = """The user you are speaking with is the IT Admin.
+    #                                 Their goal is to manage and maintain the machines and their storage. 
+    #                                 If asking for a summary, you must give a detailed breakdown of each machine. 
+    #                                 """
+    #         elif profile_input == '3':
+    #             prompt_appendix = ''
+    #         break
+    #     elif profile_input.lower() == 'exit':
+    #         print("Sorry to see you go so soon.")
+    #         break
+    #     else:
+    #         print("Invalid input, please try again.")
+    # =================================================================================================================================================================
     while True:
         # Display the list of questions with indices
         for i, question in enumerate(questions):
@@ -495,47 +504,8 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 json_response = response
                 # remove any pre-amble or post comment from llm by getting location of first [ and last ]
                 json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
-
-# ================================================================================================================================================================= 
-                # The following step was removed as the prior if statement takes away the need for it
-                # # Step 3 - check if the question is a simple calculation or not (LLMs cannot do simple calculations)
-                #prompt = """I have a problem I need to solve and I need your advice on how best to solve it.
-                # Should I use only a set of database lookups on the context I provided to answer the question, or instead write python code to do a calculation?
-                # The database contains the following information:"""
-                # prompt += response + "\n"
-                # prompt += f"Here is a problem I need to solve:\n{q}\n"
-                # prompt += '''Should I use a database lookup or write python code to do a simple calculation to solve the problem?
-                # Please respond only with 'database lookup' or 'simple calculation'. Do not include Python code or any 
-                # other information in your response.'''
-
-                # # print(f"***Prompt for simple calculation check: {prompt}***")
-                # response = send_prompt(llm, prompt, interface="ollama")
-                # # print(f"***Response to simple calculation check: {response}***")
-                
-                # if response.lower().strip() == 'database lookup':
-                #     prompt = "Here is your context for a question I will ask you:\n"
-                #     j_dict_list = eval(json_response)
-                    
-                #     d_list = []
-                #     for d in j_dict_list:
-                #         d_sub_list = []
-                #         for k, v in d.items():
-                #             d_sub_list.append((k,v))
-                #         d_list.append(d_sub_list)
-                
-                #     random.shuffle(d_list)
-                #     for d in d_list:
-                #         d_dict = dict(d)
-                #         for k, v in d_dict.items():
-                #             prompt += f"{k}: {v}\n"
-                #         prompt += "\n"
-
-                #     prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
-                #     #prompt += appendix_prompt
-                #     print(f"***Prompt for database lookup: {prompt}***")
-                #     response = send_prompt(llm, prompt, interface="ollama", temperature=0.5)
-                #     print(response)
-                #     continue
+# =================================================================================================================================================================
+# Would be where llm judges the type of question it has been asked (see archive)
 # =================================================================================================================================================================
                 prompt = "Here is your context for a question I will ask you:\n"
                 prompt += json_response + "\n"
@@ -554,7 +524,6 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 VERY IMPORTANT: Only use the precise data field labels from the context I provided in the Python code you return.
                 Here's the context again:'''
                 prompt += json_response + "\n"
-
                 print("*" * 100)
                 response = send_prompt(prompt, interface="ollama")
                 response = response.replace('```python', '').replace('```', '')
@@ -565,8 +534,6 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 response += "\nparam = eval('''" + json_response + "''')\nprint(calculation(param))\n"
                 print(response)
                 print("*" * 100)
-                import io
-
                 output_buffer = io.StringIO()
                 sys.stdout = output_buffer
                 exec(response)
@@ -586,81 +553,10 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 print(f'\n\n\n', response)
                 continue
             else: 
-            #     prompt += '''VERY IMPORTANT:  Return to me, in JSON format, all the data from the context above to answer the question. 
-            #     The JSON format should be as follows:
-            #     [
-            #         {
-            #             "machine": <machine id>,
-            #             <data-field0>: <data-field0 value>,
-            #             <data-field1>: <data-field1 value>,
-            #             etc.
-            #         }
-            #     ]
-            #     The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
-            #     VERY IMPORTANT: There are ''' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ''' are included.
-            #    \n\n THIS IS VERY IMPORTANT: If a value is not in the context, do not include it in the JSON. DO NOT INCLUDE NULL VALUES IN THE JSON.'''
-                # prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
-            #    
-                # prompt += "\nHere is that context again:\n"
-                # for ind in indices[0]:
-                #     if 0 <= ind < len(sentences):
-                #         prompt += f"{sentences[ind]}\n"
-                #     else:
-                #         print(f"Warning: Index {ind} is out of range.")
-                # prompt += "\n\n THIS IS VERY IMPORTANT: DO NOT ALTER ANY ZERO VALUES. If a value is '0', keep it as 0. If a value is not in the context, do not include it in the JSON."
-                # prompt += '\n\n Reminder: VERY IMPORTANT: There are ' + num_of_machines + ' machines in total so your list must have ' + num_of_machines + ' dictionaries - Check the context properly. Do not leave any out or I will LOSE MY JOB if not all ' + num_of_machines + ' are included.'
-            #     print("prompt:", prompt)
-            #     # sys.exit()
-            #     response = send_prompt(prompt, interface="ollama")
-            #     # print(response)
-            #     json_response = response    
-            #     # remove any pre-amble or post comment from llm by getting location of first [ and last ]
-            #     # json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
-            #     json_response = extract_json_from_response(response)
-            #     if json_response is None:
-            #         raise ValueError("No valid JSON found in the response.")
-            #     # prompt+= json_response
-            #     prompt = "Here is your context for a question I will ask you:\n"
-            #     prompt+= json_response
-            #     print("prompt:", prompt)
-            #     j_dict_list = json.loads(json_response)
-                
-            #     # Remove null values from the parsed JSON
-            #     for d in j_dict_list:
-            #         keys_to_remove = [k for k, v in d.items() if v is None]
-            #         for k in keys_to_remove:
-            #             del d[k]
-
-            # #   shuffling the values in the final context so that 1) maybe smiilar figures wont be next to each other and 2) e.g. the highest value wont always be in same place for a dataset 
-            #     d_list = []
-            #     for d in j_dict_list:
-            #         d_sub_list = []
-            #         for k, v in d.items():
-            #             d_sub_list.append((k,v))
-            #         d_list.append(d_sub_list)
-            #     random.shuffle(d_list)
-            #     for d in d_list:
-            #         d_dict = dict(d)
-            #         for k, v in d_dict.items():
-            #             prompt += f"{k}: {v}\n"
-            #         prompt += "\n"
-                # prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
                 prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
                 prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
                 # prompt += "You are exceptional at mathematics and must perform addition perfectly."
                 response = send_prompt(prompt, interface="ollama", temperature=0)
-                # prompt = 'Here is your answer to the question again: \n'
-                # prompt += response
-                # prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it." 
-                # # prompt += """\n \n Most important: If you are asked for the 'highest' value, make sure you provide the highest value as it is labeled for that data in the context. The same goes for 'lowest' value. Your answer must match the context. \n\n"""
-                # for ind in indices[0]:
-                #     if 0 <= ind < len(sentences):
-                #         prompt += f"{sentences[ind]}\n"
-                #     else:
-                #         print(f"Warning: Index {ind} is out of range.")
-                # #prompt += appendix_prompt
-                # prompt+= 'Very important: do NOT keep the answer in JSON. Write it in natural language. IMPORTANT: If there is no more relevant data, your next response should be EMPTY \n\n'
-                # response = send_prompt(prompt, interface="ollama", temperature=0.5)
                 print(f'\n\n\n', response)
                 continue
         
@@ -672,7 +568,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             # print("prompt:", prompt)
             response = send_prompt(prompt, interface="ollama", temperature=0.5)
             print(response)
-            #prompt += appendix_prompt
+            #prompt += prompt_appendix
             continue
         else:
             print("No model available. Check the server.")

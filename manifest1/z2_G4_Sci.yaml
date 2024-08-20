@@ -261,9 +261,9 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 77.0807847747114
+        cpu/utilization: 18.0807847747114
         max-cpu-wattage: 280
-        gpu/utilization: 72.6721
+        gpu/utilization: 20.1234
         max-gpu-wattage: 70
         total-MB-sent: 832.1846683778874
         total-MB-received: 1446.804229656907
@@ -272,7 +272,7 @@ tree:
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
@@ -283,9 +283,9 @@ tree:
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 10.1320136703508
+        cpu/utilization: 89.1320136703508
         max-cpu-wattage: 1400
-        gpu/utilization: 20.0051282051282
+        gpu/utilization: 13.54321
         max-gpu-wattage: 230
         total-MB-sent: 632.0265548067528
         total-MB-received: 1529.862472338883
@@ -294,7 +294,7 @@ tree:
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 48
@@ -305,9 +305,9 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 72.3746751110908
+        cpu/utilization: 15.3746751110908
         max-cpu-wattage: 280
-        gpu/utilization: 74.1210877373013
+        gpu/utilization: 4.12108773730133
         max-gpu-wattage: 70
         total-MB-sent: 3757.863341558264
         total-MB-received: 3770.940366416131
@@ -316,7 +316,7 @@ tree:
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
@@ -327,18 +327,18 @@ tree:
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 53.1286194268527
+        cpu/utilization: 79.1286194268527
         max-cpu-wattage: 1400
-        gpu/utilization: 50.0046153846153
+        gpu/utilization: 71.0046153846153
         max-gpu-wattage: 230
         total-MB-sent: 859.6917818945999
         total-MB-received: 2707.836391279287
         instance-type: Z4R G4
-        machine-code: ld71r18u45aws
+        machine-code: ld71r16u13ws
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 48
@@ -349,18 +349,18 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 88.445829334339
+        cpu/utilization: 76.9876
         max-cpu-wattage: 280
-        gpu/utilization: 87.7152385838891
+        gpu/utilization: 9.71523858388917
         max-gpu-wattage: 70
         total-MB-sent: 803.9446746331784
         total-MB-received: 17003.17031116769
         instance-type: z2 mini
-        machine-code: ld71r18u44lws
+        machine-code: ld71r18u44bws
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
@@ -371,18 +371,18 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 83.0908625039434
+        cpu/utilization: 4.09086250394348
         max-cpu-wattage: 280
-        gpu/utilization: 82.005641025641
+        gpu/utilization: 52.005641025641
         max-gpu-wattage: 70
         total-MB-sent: 1907.203541160656
         total-MB-received: 2480.276325226691
         instance-type: z2 mini
-        machine-code: ld71r18u44zws
+        machine-code: ld71r18u44cws
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17
@@ -393,18 +393,18 @@ tree:
         cpu/thermal-design-power: 165
         vcpus-total: 28
         vcpus-allocated: 28
-        cpu/utilization: 49.1355597990441
+        cpu/utilization: 30.1355597990441
         max-cpu-wattage: 1400
-        gpu/utilization: 45.0030769230769
+        gpu/utilization: 14.0030769230769
         max-gpu-wattage: 230
         total-MB-sent: 1063.412555656252
         total-MB-received: 2309.490603607732
         instance-type: Z4R G4
-        machine-code: ld71r16u13ws
+        machine-code: ld71r16u14ws
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 48
@@ -415,75 +415,9 @@ tree:
         cpu/thermal-design-power: 90
         vcpus-total: 24
         vcpus-allocated: 24
-        cpu/utilization: 4.82103511441424
+        cpu/utilization: 18.8210351144142
         max-cpu-wattage: 280
-        gpu/utilization: 1.92837
-        max-gpu-wattage: 70
-        total-MB-sent: 216.1334385042923
-        total-MB-received: 360.3143455911674
-        instance-type: z2 mini
-        machine-code: ld71r18u44bws
-        time-reserved: 157784760
-        grid/carbon-intensity: 31
-        device/expected-lifespan: 157784760
-        duration: 432000
-        network-intensity: 0.000124
-        machine: 1
-        memory/thermal-design-power: 17
-        cpu-memory/utilization: 7.935382685246907
-        gpu-memory/utilization: 29.28301886792453
-      - timestamp: '2024-06-09T23:00:00.000Z'
-        device/emissions-embodied: 370140.0
-        cpu/thermal-design-power: 90
-        vcpus-total: 24
-        vcpus-allocated: 24
-        cpu/utilization: 3.82103511441424
-        max-cpu-wattage: 280
-        gpu/utilization: 19.92837
-        max-gpu-wattage: 70
-        total-MB-sent: 216.1334385042923
-        total-MB-received: 360.3143455911674
-        instance-type: z2 mini
-        machine-code: ld71r18u44cws
-        time-reserved: 157784760
-        grid/carbon-intensity: 31
-        device/expected-lifespan: 157784760
-        duration: 432000
-        network-intensity: 0.000124
-        machine: 1
-        memory/thermal-design-power: 17
-        cpu-memory/utilization: 7.935382685246907
-        gpu-memory/utilization: 29.28301886792453
-      - timestamp: '2024-06-09T23:00:00.000Z'
-        device/emissions-embodied: 370140.0
-        cpu/thermal-design-power: 90
-        vcpus-total: 24
-        vcpus-allocated: 24
-        cpu/utilization: 1.82103511441424
-        max-cpu-wattage: 280
-        gpu/utilization: 5.92837
-        max-gpu-wattage: 70
-        total-MB-sent: 216.1334385042923
-        total-MB-received: 360.3143455911674
-        instance-type: z2 mini
-        machine-code: ld71r16u14ws
-        time-reserved: 157784760
-        grid/carbon-intensity: 31
-        device/expected-lifespan: 157784760
-        duration: 432000
-        network-intensity: 0.000124
-        machine: 1
-        memory/thermal-design-power: 17
-        cpu-memory/utilization: 7.935382685246907
-        gpu-memory/utilization: 29.28301886792453
-      - timestamp: '2024-06-09T23:00:00.000Z'
-        device/emissions-embodied: 370140.0
-        cpu/thermal-design-power: 90
-        vcpus-total: 24
-        vcpus-allocated: 24
-        cpu/utilization: 69.8210351144142
-        max-cpu-wattage: 280
-        gpu/utilization: 59.987654
+        gpu/utilization: 37.16543
         max-gpu-wattage: 70
         total-MB-sent: 216.1334385042923
         total-MB-received: 360.3143455911674
@@ -492,7 +426,7 @@ tree:
         time-reserved: 157784760
         grid/carbon-intensity: 31
         device/expected-lifespan: 157784760
-        duration: 432000
+        duration: 216000
         network-intensity: 0.000124
         machine: 1
         memory/thermal-design-power: 17

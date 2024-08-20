@@ -66,19 +66,16 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
             try:
                 total_secs_index = line.index('Total Secs:')
                 duration = line[total_secs_index + 1].strip()
+                
             except ValueError:
                 print("Warning: 'Total Secs:' not found in the expected line")
         
         elif line and 'Analysis Window:' in line[0]:
             analysis_window = line[0].split(':', 1)[1].strip()                   
     
-    if duration is None:
-        raise ValueError("Duration value not found in the file")
-    if start_date is None:
-        raise ValueError("Start date value not found in the file")
-    if end_date is None:
-        raise ValueError("End date value not found in the file")
+            analysis_window = line[0].split(':', 1)[1].strip()                   
     
+
     # Find the start of the data table
     start_row = 0
     for i, line in enumerate(lines):
@@ -93,7 +90,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     remaining_headers = df.iloc[1]
     headers = [first_column_header] + remaining_headers[1:].tolist()
     df.columns = headers
-
+    
     # Drop the first two rows which were used for headers
     df = df.drop([0, 1]).reset_index(drop=True)
     # print(df)
@@ -110,6 +107,15 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
         'MEM\navg': 'GPU_memory_average'
     }
 
+    required_columns = list(replace_dict.keys()) + ['Host Name']
+
+    # Check if all required columns are present
+    missing_columns = [col for col in required_columns if col not in headers]
+
+    if missing_columns != []:
+        raise ValueError(f"Some or all of the following required columns are missing in the uploaded Excel file: {', '.join(missing_columns)}")
+    
+
     # Replace column names using the replace_dict
     df.rename(columns=replace_dict, inplace=True)
     # print("Columns after renaming:", df.columns)
@@ -125,7 +131,13 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     df['time-reserved'] = 157784760
     df['network-intensity'] = 0.000124
     df['memory/thermal-design-power'] = ''
-
+    missing_values = []
+    if duration is None:
+        missing_values.append("Duration")
+    if start_date is None:
+        missing_values.append("Start Date")
+    if missing_values:
+        raise ValueError(f"The following values were not found in the file: {', '.join(missing_values)}")
 
     # Iterate through the DataFrame and update the 'machine-family' column based on 'cores'
     for index, row in df.iterrows():
@@ -469,6 +481,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
         }
     
     # print(manifest)
+    
     # Save the manifest to a YAML file
     with open(manifest_filepath, 'w', encoding='utf-8') as file:
         yaml.dump(manifest, file, default_flow_style=False, sort_keys=False)
@@ -483,7 +496,7 @@ def safe_generate_manifest(manifest_filepath, modified_csv_path, duration, templ
 
 def safe_print_file_info(filepath, description):
     if os.path.exists(filepath):
-        print(f"{description} has been created at {filepath}")
+        print(f"\n{description} has been created at {filepath}")
     else:
         print(f"Warning: {description} was not found at {filepath}")
 
