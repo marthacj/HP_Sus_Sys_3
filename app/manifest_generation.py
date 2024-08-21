@@ -23,12 +23,13 @@ def process_row(row, start_date, duration):
         'timestamp': start_date,
         'device/emissions-embodied': row['device/emissions-embodied'],
         'cpu/thermal-design-power': row['cpu/thermal-design-power'],
+        'gpu/thermal-design-power': row['gpu/thermal-design-power'],
         'vcpus-total': row['cores'],
         'vcpus-allocated': row['cores'],
         'cpu/utilization': float(row['CPU_average']),
-        'max-cpu-wattage': row['max-cpu-wattage'],
+        'max-machine-wattage': row['max-machine-wattage'],
         'gpu/utilization': float(row['GPU_average']),
-        'max-gpu-wattage': row['max-gpu-wattage'],
+        # 'max-gpu-wattage': row['max-gpu-wattage'],
         'total-MB-sent': float(row['Total_MB_Sent']),
         'total-MB-received': float(row['Total_MB_Received']),
         'instance-type': row['machine-family'],
@@ -121,9 +122,9 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     # print("Columns after renaming:", df.columns)
 
     df['machine-family'] = ''
-    df['max-cpu-wattage'] = ''
-    df['max-gpu-wattage'] = ''
+    df['max-machine-wattage'] = ''
     df['cpu/thermal-design-power'] = ''
+    df['gpu/thermal-design-power'] = ''
     df['device/emissions-embodied'] = ''
     df['time-reserved'] = '157788000'
     df['grid/carbon-intensity'] = 31
@@ -144,16 +145,16 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
         if row['cores'] == '24':
             df.at[index, 'cores'] = 24
             df.at[index, 'machine-family'] = 'z2 mini'
-            df.at[index, 'max-cpu-wattage'] = 280
-            df.at[index, 'max-gpu-wattage'] = 70
+            df.at[index, 'max-machine-wattage'] = 280
             df.at[index, 'cpu/thermal-design-power'] = 90
+            df.at[index, 'gpu/thermal-design-power'] = 70
             df.at[index, 'device/emissions-embodied'] = 370.14 * 1000
             df.at[index, 'memory/thermal-design-power'] = 17
         elif row['cores'] == '28':
             df.at[index, 'cores'] = 28
             df.at[index, 'machine-family'] = 'Z4R G4'
-            df.at[index, 'max-cpu-wattage'] = 1400
-            df.at[index, 'max-gpu-wattage'] = 230
+            df.at[index, 'max-machine-wattage'] = 1400
+            df.at[index, 'gpu/thermal-design-power'] = 230
             df.at[index, 'cpu/thermal-design-power'] = 165
             df.at[index, 'device/emissions-embodied'] = 306 * 1000
             df.at[index, 'memory/thermal-design-power'] = 48
@@ -187,22 +188,11 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
         'initialize': {
             'outputs': ['yaml'],
             'plugins': {
-                # 'tdp-finder': {
-                #     'method': 'CSVLookup',
-                #     'path': 'builtin',
-                #     'global-config': {
-                #         'filepath': modified_CSV_filepath,
-                #         'query': {
-                #             'host': 'instance-type'
-                #         },
-                #         'output': [['cores', 'num-cores'], ['CPU_average', 'cpu/utilization'], ['GPU_average','gpu/utilization'], ['Total_MB_Sent', 'total-MB-sent'], ['Total_MB_Received', 'total-MB-received'], ['machine-family', 'machine-family']]
-                #     }
-                # },
                 'group-by': {
                     'path': 'builtin',
                     'method': 'GroupBy',
                 },
-                'interpolate': {
+                'interpolate-cpu': {
                   'method': 'Interpolation',
                   'path': 'builtin',
                   'global-config': {
@@ -212,12 +202,29 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'input-parameter': "cpu-utilization",
                     'output-parameter': "cpu-factor" }
                 },
+                'interpolate-gpu': {
+                  'method': 'Interpolation',
+                  'path': 'builtin',
+                  'global-config': {
+                      'method': 'linear',
+                      'x':  [0, 10, 50, 100] ,
+                      'y':  [0.15, 0.32, 0.75, 0.99] ,
+                    'input-parameter': "gpu-utilization",
+                    'output-parameter': "gpu-factor" }
+                },
                 'cpu-factor-to-wattage': { # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
                   'method': 'Multiply',
                   'path': 'builtin',
                   'global-config': {
                     'input-parameters':  ["cpu-factor", "cpu/thermal-design-power"] ,
                     'output-parameter': "cpu-wattage"}
+                },
+                'gpu-factor-to-wattage': { # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
+                  'method': 'Multiply',
+                  'path': 'builtin',
+                  'global-config': {
+                    'input-parameters':  ["gpu-factor", "gpu/thermal-design-power"] ,
+                    'output-parameter': "gpu-wattage"}
                 },
                 'gpu-utilisation-percentage-to-decimal': {
                 'method': 'Divide',
@@ -441,13 +448,14 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'pipeline': [
         'group-by',
         'cpu-utilisation-percentage-to-decimal',
-        'interpolate',
+        'interpolate-cpu',
         'cpu-factor-to-wattage',
         'gpu-utilisation-percentage-to-decimal',
-        'gpu-utilisation-to-wattage',
+        'interpolate-gpu',
+        'gpu-factor-to-wattage',
+        # 'gpu-utilisation-to-wattage',
         'gpu-wattage-times-duration',
         'gpu-wattage-to-energy-kwh',
-        
         # 'cpu-utilisation-to-wattage',
         'cpu-wattage-times-duration',
         'cpu-wattage-to-energy-kwh',
