@@ -173,7 +173,7 @@ def extract_data_from_yaml(yaml_data: yaml) -> tuple[dict, dict]:
     lowest_children_level = yaml_data['tree']['children']['child']['children']
     lowest_children_level.update(yaml_data['tree']['children']['child']['children'])
     # dump the yaml to file for debug
-    with open(r'embeddings\yaml_dump.txt', 'w') as f:
+    with open(r'embeddings/yaml_dump.txt', 'w') as f:
         yaml.dump(lowest_children_level, f)
     for i, machine in enumerate(lowest_children_level):
         for child in lowest_children_level[machine]['outputs']:
@@ -358,7 +358,7 @@ def embed_sentences(sentences, model):
         rebuild_faiss_index = True
         
         """save the encodings to pickle file"""
-        with open(r'embeddings\embeddings.pickle', 'wb') as file:
+        with open(r'embeddings/embeddings.pickle', 'wb') as file:
             pickle.dump(embeddings, file)
     # Convert embeddings to a numpy array
         embeddings = np.array(embeddings)

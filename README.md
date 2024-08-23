@@ -1,8 +1,9 @@
-# HP_Sus_Sys_3
+# CARBON ESTIMATOR SYSTEM
 
 ##  Table of contents
 
 - Description
+- Prerequisites
 - Installation
 - Configuration
 - Troubleshooting
@@ -18,12 +19,32 @@ The system utilises the Green Software Foundation's Impact Framework to support 
 The system uses Ollama server to support the use of the offline Llama3 8B Model to run the queries.
 
 
+## Prerequisites
+- Windows 10 or later
+- Python 3.10
+- NVIDIA GPU with CUDA support (see https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#:~:text=2.2.-,Download%20the%20NVIDIA%20CUDA%20Toolkit,downloads%20packages%20required%20for%20installation)
+- Node.js (tested with v20.14.0) and npm (tested with 10.8.1)
+
 
 ## Installation
-### Impact Framework
-Install the Impact Framework globally using npm.
+1. Clone or download this repository.
 
-npm install -g @grnsft/if
+2. Install CUDA Toolkit:
+   - Download and install the CUDA Toolkit from [NVIDIA's website](https://developer.nvidia.com/cuda-downloads).
+
+3. Install Python dependencies: 
+   pip install -r requirements.txt 
+
+4. Install the Impact Framework globally using npm.
+
+IMPORTANT: Check what the latest version of IF is. At the time of development, the latest was 0.6.0 - the syntax of this project is not compatible with earlier versions and may not be with later versions.
+
+npm install -g @grnsft/if@0.6.0 
+
+OR if still the latest version:
+
+npm install -g @grnsft/if 
+
 
 Install the plugins to support the running of the pipeline.
 
@@ -31,6 +52,13 @@ npm install -g @grnsft/if-plugins
 npm install -g @grnsft/if-unofficial-plugins
 
 The system will automatically generate and run customised manifest files per user upload. 
+
+5. Next the llama3 model from Ollama is needed. 
+On Windows, run:
+.\ollama.exe pull llama3
+
+On Mac, run: 
+.\ollama.bin pull llama3
 
 ### Ollama
 

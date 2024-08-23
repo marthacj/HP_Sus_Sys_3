@@ -1,6 +1,5 @@
 import pandas as pd
 import yaml
-import sys
 from datetime import datetime, timezone
 import csv
 from dateutil.parser import parse
@@ -10,7 +9,7 @@ def convert_xlsx_to_csv(excel_file):
     df = pd.read_excel(excel_file, sheet_name='WS-Data')
 
     # Define the output CSV file path
-    csv_file = r'data\uploaded_file.csv'
+    csv_file = r'data/uploaded_file.csv'
 
     # Write the DataFrame to a CSV file
     df.to_csv(csv_file, index=False)
@@ -188,59 +187,51 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
         'initialize': {
             'outputs': ['yaml'],
             'plugins': {
-                'group-by': {
-                    'path': 'builtin',
-                    'method': 'GroupBy',
-                },
                 'interpolate-cpu': {
-                  'method': 'Interpolation',
-                  'path': 'builtin',
-                  'global-config': {
-                      'method': 'linear',
-                      'x':  [0, 10, 50, 100] ,
-                      'y':  [0.12, 0.32, 0.75, 1.02] ,
-                    'input-parameter': "cpu-utilization",
-                    'output-parameter': "cpu-factor" }
-                },
-                'interpolate-gpu': {
-                  'method': 'Interpolation',
-                  'path': 'builtin',
-                  'global-config': {
-                      'method': 'linear',
-                      'x':  [0, 10, 50, 100] ,
-                      'y':  [0.15, 0.32, 0.75, 0.99] ,
-                    'input-parameter': "gpu-utilization",
-                    'output-parameter': "gpu-factor" }
-                },
-                'cpu-factor-to-wattage': { # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
-                  'method': 'Multiply',
-                  'path': 'builtin',
-                  'global-config': {
-                    'input-parameters':  ["cpu-factor", "cpu/thermal-design-power"] ,
-                    'output-parameter': "cpu-wattage"}
-                },
-                'gpu-factor-to-wattage': { # Determines power drawn by CPU at exact utilisation % by multiplying scaling factor and TDP
-                  'method': 'Multiply',
-                  'path': 'builtin',
-                  'global-config': {
-                    'input-parameters':  ["gpu-factor", "gpu/thermal-design-power"] ,
-                    'output-parameter': "gpu-wattage"}
-                },
-                'gpu-utilisation-percentage-to-decimal': {
-                'method': 'Divide',
-                'path': 'builtin',
-                'global-config': {
-                    'numerator': "gpu/utilization",
-                    'denominator': 100,
-                    'output': "gpu-utilization"
+                    'method': 'Interpolation',
+                    'path': 'builtin',
+                    'global-config': {
+                        'method': 'linear',
+                        'x': [0, 10, 50, 100],
+                        'y': [0.12, 0.32, 0.75, 1.02],
+                        'input-parameter': "cpu-utilization",
+                        'output-parameter': "cpu-factor"
                     }
                 },
-                'gpu-utilisation-to-wattage': {
+                'interpolate-gpu': {
+                    'method': 'Interpolation',
+                    'path': 'builtin',
+                    'global-config': {
+                        'method': 'linear',
+                        'x': [0, 10, 50, 100],
+                        'y': [0.15, 0.32, 0.75, 0.99],
+                        'input-parameter': "gpu-utilization",
+                        'output-parameter': "gpu-factor"
+                    }
+                },
+                'cpu-factor-to-wattage': {
                     'method': 'Multiply',
                     'path': 'builtin',
                     'global-config': {
-                        'input-parameters': ["gpu-utilization", "max-gpu-wattage"],
+                        'input-parameters': ["cpu-factor", "cpu/thermal-design-power"],
+                        'output-parameter': "cpu-wattage"
+                    }
+                },
+                'gpu-factor-to-wattage': {
+                    'method': 'Multiply',
+                    'path': 'builtin',
+                    'global-config': {
+                        'input-parameters': ["gpu-factor", "gpu/thermal-design-power"],
                         'output-parameter': "gpu-wattage"
+                    }
+                },
+                'gpu-utilisation-percentage-to-decimal': {
+                    'method': 'Divide',
+                    'path': 'builtin',
+                    'global-config': {
+                        'numerator': "gpu/utilization",
+                        'denominator': 100,
+                        'output': "gpu-utilization"
                     }
                 },
                 'gpu-wattage-times-duration': {
@@ -267,14 +258,6 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                         'numerator': "cpu/utilization",
                         'denominator': 100,
                         'output': "cpu-utilization"
-                    }
-                },
-                'cpu-utilisation-to-wattage': {
-                    'method': 'Multiply',
-                    'path': 'builtin',
-                    'global-config': {
-                        'input-parameters': ["cpu-utilization", "cpu/thermal-design-power"],
-                        'output-parameter': "cpu-wattage"
                     }
                 },
                 'cpu-wattage-times-duration': {
@@ -318,7 +301,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'global-config': {
                         'input-parameters': ["cpu-memory-utilization", "gpu-memory-utilization"],
                         'output-parameter': "cpu-gpu-combined-memory-utilization"
-                        }
+                    }
                 },
                 'average-cpu-gpu-memory-utilization': {
                     'method': 'Divide',
@@ -352,57 +335,6 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                         'numerator': "memory-wattage-times-duration",
                         'denominator': 3600000,
                         'output': "memory/energy"
-                    }
-                },
-                'calculate-vcpu-ratio': {
-                    'method': 'Divide',
-                    'path': 'builtin',
-                    'global-config': {
-                        'numerator': "vcpus-allocated",
-                        'denominator': "vcpus-total",
-                        'output': "vcpu-ratio"
-                    }
-                },
-                'correct-cpu-energy-for-vcpu-ratio': {
-                    'method': 'Divide',
-                    'path': 'builtin',
-                    'global-config': {
-                        'numerator': "cpu-energy-raw",
-                        'denominator': "vcpu-ratio",
-                        'output': "cpu/energy"
-                    }
-                },
-                'energy-sent': {
-                    'method': 'Multiply',
-                    'path': 'builtin',
-                    'global-config': {
-                        'input-parameters': ["total-MB-sent", "network-intensity"],
-                        'output-parameter': "energy-sent-joules"
-                    }
-                },
-                'energy-received': {
-                    'method': 'Multiply',
-                    'path': 'builtin',
-                    'global-config': {
-                        'input-parameters': ["total-MB-received", "network-intensity"],
-                        'output-parameter': "energy-received-joules"
-                    }
-                },
-                'sum-network-energy-joules': {
-                    'method': 'Sum',
-                    'path': 'builtin',
-                    'global-config': {
-                        'input-parameters': ["energy-sent-joules", "energy-received-joules"],
-                        'output-parameter': "total-energy-network-joules"
-                    }
-                },
-                'total-network-energy-to-kwh': {
-                    'method': 'Divide',
-                    'path': 'builtin',
-                    'global-config': {
-                        'numerator': "total-energy-network-joules",
-                        'denominator': 3600000,
-                        'output': "network/energy"
                     }
                 },
                 'sum-energy-components': {
@@ -445,54 +377,43 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
         'tree': {
             'children': {
                 'child': {
-                    'pipeline': [
-        'group-by',
-        'cpu-utilisation-percentage-to-decimal',
-        'interpolate-cpu',
-        'cpu-factor-to-wattage',
-        'gpu-utilisation-percentage-to-decimal',
-        'interpolate-gpu',
-        'gpu-factor-to-wattage',
-        # 'gpu-utilisation-to-wattage',
-        'gpu-wattage-times-duration',
-        'gpu-wattage-to-energy-kwh',
-        # 'cpu-utilisation-to-wattage',
-        'cpu-wattage-times-duration',
-        'cpu-wattage-to-energy-kwh',
-        'cpu-memory-utilisation-percentage-to-decimal',
-        'gpu-memory-utilisation-percentage-to-decimal',
-        'add-cpu-gpu-memory-utilization',
-        'average-cpu-gpu-memory-utilization',
-        'cpu-gpu-average-memory-utilization-to-wattage',
-        'memory-wattage-times-duration',
-        'memory-wattage-to-energy-kwh',
-        # 'calculate-vcpu-ratio',
-        # 'correct-cpu-energy-for-vcpu-ratio',
-        # 'energy-sent',
-        # 'energy-received',
-        # 'sum-network-energy-joules',
-        # 'total-network-energy-to-kwh',
-        'sum-energy-components',
-        'sci-embodied',
-        'operational-carbon',
-        'sum-carbon',
-        'sci'
-    ],
-    'config': {
-        'group-by': {
-            'group': ['machine-code']
-    }},
-
+                    'pipeline': {
+                        'regroup': ['machine-code'],
+                        'compute': [
+                            'cpu-utilisation-percentage-to-decimal',
+                            'interpolate-cpu',
+                            'cpu-factor-to-wattage',
+                            'gpu-utilisation-percentage-to-decimal',
+                            'interpolate-gpu',
+                            'gpu-factor-to-wattage',
+                            'gpu-wattage-times-duration',
+                            'gpu-wattage-to-energy-kwh',
+                            'cpu-wattage-times-duration',
+                            'cpu-wattage-to-energy-kwh',
+                            'cpu-memory-utilisation-percentage-to-decimal',
+                            'gpu-memory-utilisation-percentage-to-decimal',
+                            'add-cpu-gpu-memory-utilization',
+                            'average-cpu-gpu-memory-utilization',
+                            'cpu-gpu-average-memory-utilization-to-wattage',
+                            'memory-wattage-times-duration',
+                            'memory-wattage-to-energy-kwh',
+                            'sum-energy-components',
+                            'sci-embodied',
+                            'operational-carbon',
+                            'sum-carbon',
+                            'sci'
+                        ]
+                    },
                     'inputs': templates
-                }},
+                }
             }
         }
-    
-    # print(manifest)
-    
-    # Save the manifest to a YAML file
+    }
+
+    # Write the manifest to a file
     with open(manifest_filepath, 'w', encoding='utf-8') as file:
         yaml.dump(manifest, file, default_flow_style=False, sort_keys=False)
+
 
 def safe_generate_manifest(manifest_filepath, modified_csv_path, duration, templates):
     try:
@@ -509,12 +430,12 @@ def safe_print_file_info(filepath, description):
         print(f"Warning: {description} was not found at {filepath}")
 
 if __name__ == '__main__':
-    excel_file = r'data\1038-0610-0614-day.xlsx'
+    excel_file = r'data/1038-0610-0614-day.xlsx'
     csv_file = convert_xlsx_to_csv(excel_file)
     # Define the input and output file paths
     original_CSV_filepath = csv_file
-    modified_CSV_filepath = r'data\modified_CSV1038-0610-0614-day.csv'
-    manifest_filepath = r'manifest1\NEW_z2_G4_Sci.yaml'
+    modified_CSV_filepath = r'data/modified_CSV1038-0610-0614-day.csv'
+    manifest_filepath = r'manifest1/NEW_z2_G4_Sci.yaml'
 
     modified_csv_path, duration, start_date, end_date, templates, analysis_window = process_csv(original_CSV_filepath, modified_CSV_filepath)
     # Generate the manifest file with the extracted duration value

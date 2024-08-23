@@ -7,7 +7,6 @@ from testing import *
 from CSV_upload import *
 import time
 import requests
-from detect_os import detect_os
 
 questions = ["\n \n \n Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n", 
                 "How much is the total carbon emissions for all the machines?\n", 
@@ -18,32 +17,22 @@ questions = ["\n \n \n Can you tell me how much carbon emission is produced by m
                 "What machine has the highest carbon emission value?\n"]
 
 def start_server():
-    user_os = detect_os()
-    
-    if user_os == "Windows":
-        script_name = 'start_server.bat'
-    else:  # macOS or Linux
-        script_name = 'start_server.sh'
-    
-    script_path = os.path.join(os.path.dirname(__file__), script_name)
-    
+    script_path = os.path.join(os.path.dirname(__file__), 'start_server.bat')
+    # print(f"\n\nScript path: {script_path}")  
     if os.path.exists(script_path):
+        # print("\n\nScript found")
         print("Starting Ollama server...")
-        print("Please wait for the server to start... \n\n")
-        
-        if user_os == "Windows":
-            subprocess.Popen([script_path], shell=True)
-        else:
-            subprocess.Popen(['sh', script_path])
-        
+        print("Please wait for the server to start... \n\n") 
+        subprocess.Popen([script_path], shell=True)
         # Wait for the server to start
         time.sleep(5)  # Adjust this delay if needed
     else:
-        print(f"\n\nScript to start Ollama server not found: {script_path}")
+        print("\n\nScript to start Ollama server not found.")
 
 def check_server():
     try:
         response = requests.get('http://127.0.0.1:11434')  # Adjust URL and port as needed
+        # response = requests.get('http://ollama:11434/status')
         if response.status_code == 200:
             print("\n\n★ ☆ ★ ☆ Server is up and running ★ ☆ ★ ☆ \n\n")
         else:
@@ -76,8 +65,8 @@ if __name__ == '__main__':
 
     # Define the input and output file paths
     original_CSV_filepath = csv_file
-    modified_CSV_filepath = r'data/modified_CSV.csv'
-    manifest_filepath = r'manifest1/z2_G4_Sci.yaml'
+    modified_CSV_filepath = r'data\modified_CSV.csv'
+    manifest_filepath = r'manifest1\z2_G4_Sci.yaml'
 
     # Process the CSV file and extract the duration value, start date, end date, and templates to create the manifest file
     try:
@@ -109,8 +98,8 @@ if __name__ == '__main__':
 
         # Construct absolute paths
         manifest_path = os.path.abspath(os.path.join(current_dir, 'manifest1', 'z2_G4_Sci.yaml'))
-        output_path = os.path.abspath(os.path.join(current_dir, 'manifest1', 'outputs', 'z2_G4_Sci_Output.yaml'))
-  
+        output_path = os.path.abspath(os.path.join(current_dir, 'manifest1', 'outputs', 'z2_G4_Sci_Output'))
+
         # Check if paths exist
         if os.path.exists(manifest_path):
             print(f"\nManifest file found at: {manifest_path}")
@@ -187,9 +176,9 @@ if __name__ == '__main__':
     # print(merged_df.columns)
 
     # Save the merged DataFrame to a CSV file 
-    merged_df.to_csv(r'embeddings/merged_df.csv', index=False)
+    merged_df.to_csv(r'embeddings\merged_df.csv', index=False)
 
-    csv_filename = r'embeddings/merged_df.csv'
+    csv_filename = r'embeddings\merged_df.csv'
 
     # convert the csv file to a json file
     data_dict_json = csv_to_json(csv_filename, as_json=False)
@@ -198,18 +187,18 @@ if __name__ == '__main__':
     flat_dict = flatten(data_dict_json)
     dict_string = stringify(flat_dict)
 
-    with open(r'embeddings/data.txt', 'w') as f:
+    with open(r'embeddings\data.txt', 'w') as f:
         f.write(dict_string)
 
     # Read the stringified flat dictionary from the file
-    with open(r'embeddings/data.txt', 'r') as f:
+    with open(r'embeddings\data.txt', 'r') as f:
         read_back_string = f.read()
 
     print("\nStringified flat dictionary read back from the file.")
     # print(read_back_string)
 
     # Path to data.txt file
-    sentences_file_path = r'embeddings/data.txt'
+    sentences_file_path = r'embeddings\data.txt'
 
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
