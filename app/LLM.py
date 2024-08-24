@@ -567,7 +567,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             continue
 
 
-def add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines):
+def add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines, merged_df):
     # Prepare the duration and date of data collection sentences
     date_of_data_collection = 'DATE OF DATA COLLECTION: Data was collected between ' + start_date[:10] + ' and ' + end_date[:10] + '.'
     CPU_average_context = 'If the CPU average utilisation percent is above 85%, it indicates that the machine is under heavy load and may need more resources, like being moved to a higher compute power with more cores.  Around 75% utlilisation is very efficient as it is making the most of the resources (good for sustainability), yet work is not slowed down by compute limitations.  If the value is below 15%, it indicates that the machine is underutilised and it it would be more cost effective to reduce resources, like a lower compute power. This saves money and is more environmentally friendly which is important to the business.'
@@ -584,7 +584,9 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     # Split the analysis_window into words and clean up
     words = analysis_window.split()
     cleaned_words = []
-    
+    total_sum = merged_df['carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS'].sum()
+
+    total_sum_of_carbon_emissions = "The total carbon emissions across all " + num_of_machines + " machines is " + str(total_sum) + " gCO2eq. **Do not add this figure with any other figure**" 
     # Replace day abbreviations with full names and remove any unwanted characters
     for word in words:
         cleaned_word = word.strip(',."')

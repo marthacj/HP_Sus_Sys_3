@@ -168,22 +168,27 @@ if __name__ == '__main__':
         merged_df, machine_ids = merge_data_into_one_df(prepared_df, machine_emissions_list, machine_id_dict)
 
     except ValueError as e:
-        # Handle errors by notifying the user
         print(f"Error: {e}. Please upload a correctly formatted file.")
 
     
     columns_to_exclude = ['model', 'timestamp', 'Machine', 'number of cores']
     columns_to_label = [col for col in merged_df.columns if col not in columns_to_exclude]
    
+    convertible_columns = []
 
-    # Apply the labeling function to selected columns
+    # Try to convert each column to float but skip if forr some reason column is not numeric
     for col in columns_to_label:
-        merged_df[col] = merged_df[col].astype(float)
-    for col in columns_to_label:
+        try:
+            merged_df[col] = merged_df[col].astype(float)
+            convertible_columns.append(col)
+        except ValueError:
+            print(f"Column {col} could not be converted to float and will be skipped.")
+
+    for col in convertible_columns:
         merged_df[col] = label_max_min(merged_df[col])
 
     # Append the total carbon emissions row
-    # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq)')
+    # merged_df = append_sum_row(merged_df, 'carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS')
     # print(merged_df.columns)
 
     # Save the merged DataFrame to a CSV file 
@@ -213,7 +218,7 @@ if __name__ == '__main__':
 
     # Read sentences from file
     sentences = read_sentences_from_file(sentences_file_path)
-    add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines=str(len(machine_ids)))
+    add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines=str(len(machine_ids)), merged_df=merged_df)
     # print(sentences)
 
     # Load the pre-trained model for embedding with SentenceTransformer

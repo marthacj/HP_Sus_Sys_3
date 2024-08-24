@@ -126,7 +126,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     df['gpu/thermal-design-power'] = ''
     df['device/emissions-embodied'] = ''
     df['time-reserved'] = '157788000'
-    df['grid/carbon-intensity'] = 31
+    df['grid/carbon-intensity'] = 133
     df['device/expected-lifespan'] = 157784760
     df['time-reserved'] = 157784760
     df['network-intensity'] = 0.000124
