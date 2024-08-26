@@ -70,7 +70,9 @@ Next, run the command:
   ** .\app\ollama.exe pull llama3**
 
 
-6. For size limitations, all users will need to pull the latest llama3 model themselves. The system will set the Ollama Models Environment variable to location: /app/models. Once you have pulled the llama3 model, you must move the blobs and manifest files rom their original location on your machine to the above specified folder.
+6. For size limitations, all users will need to pull the latest llama3 model themselves. The system will set the Ollama Models Environment variable to location: /app/models.
+   On Windows: Once you have pulled the llama3 model, you must move the blobs and manifest files from their original location on your machine to the above specified folder.
+   On Mac: Once you have pulled the model, you do not need to move the files.
 
 
 ## Usage
