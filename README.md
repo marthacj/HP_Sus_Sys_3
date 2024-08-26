@@ -25,7 +25,7 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
  **IMPORTANT**: Using a later Python version is possible but requires pip installing some packages separately to requirements.txt (see below)
 - Node.js (**v20.14.0**) and npm (v**10.8.1**)
 
-# For BEST results, please use with a GPU. The application can run on the CPU but is incredibly slow.
+### For BEST results, please use with a GPU. The application can run on the CPU but is incredibly slow.
 - NVIDIA GPU with CUDA support (see https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#:~:text=2.2.-,Download%20the%20NVIDIA%20CUDA%20Toolkit,downloads%20packages%20required%20for%20installation)
 - Please check here to see whether your GPU is compatible with Ollama:  https://github.com/ollama/ollama/blob/main/docs/gpu.md
 
