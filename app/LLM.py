@@ -10,6 +10,9 @@ import pickle
 import ollama
 import io
 import re
+from detect_os import detect_os
+
+user_os = detect_os()
 
 # model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 # llm = Llama(
@@ -24,13 +27,14 @@ model_name = "llama3"
 def send_prompt(prompt: str, interface: str = "ollama",
                 max_tokens: int = 1024, temperature: float = 0) -> str:
     if interface == "ollama":
-        # Checking that the user has pulled the model and moved the folders to this directory before running the code
-        if model_name == "llama3qa" and not is_model_pulled("llama3"):
-            print("You need to pull 'llama3-chatqa' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
-            sys.exit(1)
-        elif model_name == "llama3" and not is_model_pulled("llama3"):
-            print("You need to pull 'llama3' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
-            sys.exit(1)
+      if user_os == 'Windows':
+          # Checking that the user has pulled the model and moved the folders to this directory before running the code
+          if model_name == "llama3qa" and not is_model_pulled("llama3"):
+              print("You need to pull 'llama3-chatqa' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
+              sys.exit(1)
+          elif model_name == "llama3" and not is_model_pulled("llama3"):
+              print("You need to pull 'llama3' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
+              sys.exit(1)
         
         if model_name == "llama3qa":
             response = ollama.generate(
