@@ -11,7 +11,7 @@
 - FAQ
 
 ## Description
-This aim of this project was to build an integrated system which converts telemetry data into carbon emissions estimations. 
+This project aimed to build an integrated system which converts telemetry data into carbon emissions estimations which was part of a pipeline using a Large Language Model and a Retrieval Augmented Generation system to support natural language user input to query the data. 
 
 The system is compatible with 2 types of HP remote workstations (Z2 Mini and ZCentral 4R ENERGY STAR ). The Excel file uploaded by the user must only include telemetry data collected from these machines.
 
