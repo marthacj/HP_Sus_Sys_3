@@ -59,11 +59,11 @@ npm install -g @grnsft/if-unofficial-plugins**
 5. Next the llama3 model from Ollama is needed. If you are on Windows OS, the executable is already included in this directory. Skip to 5.b
 
 5.a If you are on MacOS, please go here https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server to download the ollama.bin model and move it into the app folder in this directory.
-IMPORTANT: When moving the application's directory, it may lose its executable status. You will need to cd into the app directory, and run chmod +x ollama. The application will check this and do so if it has not been done manually, but it is better if done by the user.
+IMPORTANT: when you download Ollama, the application will ask you if you want to move it to Applications. Once there, right-click and select 'Show Package Contents > Contents > MacOS' then move the Ollama executable into the HP_Sus_Sys/app folder.
  
 Next, run the command:
 
-   **.(/app)/ollama pull llama3**
+   **Ollama pull llama3**
 
 5.b On Windows, run:
 
