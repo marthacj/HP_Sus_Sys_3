@@ -92,6 +92,6 @@ This application is best compatible with Windows 10 or MacOS systems, using NVID
 
 If you encounter CUDA-related errors, ensure your NVIDIA drivers are up to date. This machine uses CUDA 11.8.0
 
-If you have issues with imports (e.g. with sentence-transformer, numpy, or pandas in particular), ensure you downgrade Python to Python 3.10.
+If you have issues with imports (e.g. with sentence-transformers, numpy, or pandas in particular), ensure you downgrade Python to Python 3.10.
 
 Due to GPU memory requirements, this application has not be tested on another OS, but did run successfully on Docker using Linux distribution with Ubuntu22.04. 
