@@ -11,8 +11,8 @@ import ollama
 import io
 import re
 from detect_os import detect_os
-
 user_os = detect_os()
+
 
 # model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 # llm = Llama(
@@ -25,38 +25,43 @@ user_os = detect_os()
 
 model_name = "llama3"
 def send_prompt(prompt: str, interface: str = "ollama",
-                max_tokens: int = 1024, temperature: float = 0) -> str:
+                max_tokens: int = 1024, temperature: float = 0):
     if interface == "ollama":
-      if user_os == 'Windows':
-          # Checking that the user has pulled the model and moved the folders to this directory before running the code
-          if model_name == "llama3qa" and not is_model_pulled("llama3qa"):
-              print("You need to pull 'llama3-chatqa' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
-              sys.exit(1)
-          elif model_name == "llama3" and not is_model_pulled("llama3"):
-              print("You need to pull 'llama3' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
-              sys.exit(1)
+        if user_os == 'Windows':
+            # Checking that the user has pulled the model and moved the folders to this directory before running the code
+            if model_name == "llama3qa" and not is_model_pulled("llama3"):
+                print("You need to pull 'llama3-chatqa' from Ollama first and move the blobs and manifests folders to the models folder in the app/models folder of this application.")
+                sys.exit(1)
+            elif model_name == "llama3" and not is_model_pulled("llama3"):
+                print("You need to pull 'llama3' from Ollama first and move the blobs and manifests folders to the models folder in the app/models folder of this application.")
+                sys.exit(1)
         
+        # Generating the response with streaming enabled
         if model_name == "llama3qa":
-            response = ollama.generate(
+            response_stream = ollama.generate(
                 model="llama3-chatqa",
                 prompt=prompt,
                 keep_alive='24h',
-                options={'num_ctx': 16000, 'temperature': temperature}
+                options={'num_ctx': 16000, 'temperature': temperature},
+                stream=True  
             )
         elif model_name == "llama3":
-            response = ollama.generate(
+            response_stream = ollama.generate(
                 model="llama3",
                 prompt=prompt,
                 keep_alive='24h',
-                options={'num_ctx': 16000, 'temperature': temperature}
+                options={'num_ctx': 16000, 'temperature': temperature},
+                stream=True 
             )
         else:
             raise ValueError("Unsupported model name provided.")
 
-        response = response['response']
-        return response
+        # Streaming the response
+        for chunk in response_stream:
+            yield chunk['response']  
     else:
         raise ValueError("Unsupported interface provided. Exiting the system.")
+
 
 def is_model_pulled(model_name: str) -> bool:
     # checking the model is there 
@@ -504,7 +509,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 prompt += f"{sentences[ind]}\n"
             else:
                 print(f"Warning: Index {ind} is out of range.")
-        print('prompt:', prompt)
+        #print('prompt:', prompt)
         prompt += f"Use the above context to answer this question:\n{q}\n"
         # print("prompt:", prompt)
         if model_name == 'llama3':
@@ -576,14 +581,19 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                     else:
                         print(f"Warning: Index {ind} is out of range.")
                 prompt += f"Your response must be in plain English, including the value {output_buffer.getvalue()} in gCO2eq. Do not include any code in your response."
-                response = send_prompt(prompt, interface="ollama", temperature=0)
+                # response = send_prompt(prompt, interface="ollama", temperature=0)
+                for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                    print(chunk, end='', flush=True)
                 print(f'\n\n\n', response)
                 continue
             else: 
                 prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
                 prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
-                response = send_prompt(prompt, interface="ollama", temperature=0)
-                print(f'\n\n\n', response)
+                # response = send_prompt(prompt, interface="ollama", temperature=0)
+                for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                    print(chunk, end='', flush=True)
+                # print(f'\n\n\n', response)
+                print("\n\n\n")
                 continue
         
         elif model_name == 'llama3qa': 
@@ -592,8 +602,11 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             prompt += "You are exceptional at mathematics and must perform addition perfectly. To do so, only add two numbers at a time and find a total value by applying this method."
             # prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
             # print("prompt:", prompt)
-            response = send_prompt(prompt, interface="ollama", temperature=0.5)
-            print(response)
+            # response = send_prompt(prompt, interface="ollama", temperature=0.5)
+            # print(response)
+            for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                print(chunk, end='', flush=True)
+            print("\n\n\n")
             #prompt += prompt_appendix
             continue
         else:
