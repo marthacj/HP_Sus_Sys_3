@@ -11,5 +11,6 @@ echo "Running command: ./ollama serve"
 export OLLAMA_MODELS="$(pwd)/models"
 echo "Ollama Model path set to: $OLLAMA_MODELS"
 
+chmod +x ./ollama
 # Start the ollama server
 ./ollama serve
