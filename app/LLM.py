@@ -29,7 +29,7 @@ def send_prompt(prompt: str, interface: str = "ollama",
     if interface == "ollama":
       if user_os == 'Windows':
           # Checking that the user has pulled the model and moved the folders to this directory before running the code
-          if model_name == "llama3qa" and not is_model_pulled("llama3"):
+          if model_name == "llama3qa" and not is_model_pulled("llama3qa"):
               print("You need to pull 'llama3-chatqa' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
               sys.exit(1)
           elif model_name == "llama3" and not is_model_pulled("llama3"):
