@@ -24,7 +24,7 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
 - Python 3.10
 - NVIDIA GPU with CUDA support (see https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#:~:text=2.2.-,Download%20the%20NVIDIA%20CUDA%20Toolkit,downloads%20packages%20required%20for%20installation)
 - Please check here to see whether your GPU is compatible with Ollama:  https://github.com/ollama/ollama/blob/main/docs/gpu.md
-- Node.js (tested with v20.14.0) and npm (tested with 10.8.1)
+- Node.js (**v20.14.0**) and npm (v**10.8.1**)
 
 
 ## Installation
@@ -39,9 +39,9 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
    pip install -r requirements.txt 
 
 
-4. Install the Impact Framework globally using npm.
+4. Install the Impact Framework globally using npm (**you may need to use 'sudo in front of each command'**).
 
-**IMPORTANT**: Check what the latest version of IF is. At the time of development, the latest was 0.6.0 - the syntax of this project is not compatible with earlier versions and may not be with later versions.
+**IMPORTANT**: Check what the latest version of IF is using **npm view @grnsft/if versions**. At the time of development, the latest was 0.6.0 - the syntax of this project is not compatible with earlier versions and may not be with later versions.
 
 **npm install -g @grnsft/if@0.6.0 **
 
@@ -55,15 +55,15 @@ Install the plugins to support the running of the pipeline.
 **npm install -g @grnsft/if-plugins
 npm install -g @grnsft/if-unofficial-plugins**
 
-The system will automatically generate and run customised manifest files per user upload. 
-
 
 5. Next the llama3 model from Ollama is needed. If you are on Windows OS, the executable is already included in this directory. Skip to 5.b
 
-5.a If you are on MacOS, please go here https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server to download the ollama.bin model and move it into the app folder in this directory. 
+5.a If you are on MacOS, please go here https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server to download the ollama.bin model and move it into the app folder in this directory.
+IMPORTANT: When moving the application's directory, it may lose its executable status. You will need to cd into the app directory, and run chmod +x ollama. The application will check this and do so if it has not been done manually, but it is better if done by the user.
+ 
 Next, run the command:
 
-   **./app/ollama pull llama3**
+   **.(/app)/ollama pull llama3**
 
 5.b On Windows, run:
 
