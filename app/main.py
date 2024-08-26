@@ -8,6 +8,7 @@ from CSV_upload import *
 import time
 import requests
 from detect_os import detect_os
+user_os = detect_os()
 
 questions = ["\n \n \n Can you tell me how much carbon emission is produced by machine ld71r18u44dws?\n", 
                 "How much is the total carbon emissions for all the machines? (dynamic programming) \n", 
@@ -19,8 +20,6 @@ questions = ["\n \n \n Can you tell me how much carbon emission is produced by m
                 "How much is the total carbon emissions for all the machines?\n"]
 
 def start_server():
-    user_os = detect_os()
-    
     if user_os == "Windows":
         script_name = 'start_server.bat'
     else:  # macOS or Linux
