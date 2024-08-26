@@ -19,11 +19,11 @@ The system utilises the Green Software Foundation's Impact Framework to support 
 
 The system uses Ollama server to support the use of the offline Llama3 8B Model to run the queries.
 
-
 ## Prerequisites
 - Windows 10 or later
 - Python 3.10
 - NVIDIA GPU with CUDA support (see https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#:~:text=2.2.-,Download%20the%20NVIDIA%20CUDA%20Toolkit,downloads%20packages%20required%20for%20installation)
+- Please check here to see whether your GPU is compatible with Ollama:  https://github.com/ollama/ollama/blob/main/docs/gpu.md
 - Node.js (tested with v20.14.0) and npm (tested with 10.8.1)
 
 
@@ -41,19 +41,19 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
 
 4. Install the Impact Framework globally using npm.
 
-IMPORTANT: Check what the latest version of IF is. At the time of development, the latest was 0.6.0 - the syntax of this project is not compatible with earlier versions and may not be with later versions.
+**IMPORTANT**: Check what the latest version of IF is. At the time of development, the latest was 0.6.0 - the syntax of this project is not compatible with earlier versions and may not be with later versions.
 
-npm install -g @grnsft/if@0.6.0 
+**npm install -g @grnsft/if@0.6.0 **
 
 OR if still the latest version:
 
-npm install -g @grnsft/if 
+**npm install -g @grnsft/if** 
 
 
 Install the plugins to support the running of the pipeline.
 
-npm install -g @grnsft/if-plugins
-npm install -g @grnsft/if-unofficial-plugins
+**npm install -g @grnsft/if-plugins
+npm install -g @grnsft/if-unofficial-plugins**
 
 The system will automatically generate and run customised manifest files per user upload. 
 
@@ -61,11 +61,13 @@ The system will automatically generate and run customised manifest files per use
 5. Next the llama3 model from Ollama is needed. If you are on Windows OS, the executable is already included in this directory. Skip to 5.b
 
 5.a If you are on MacOS, please go here https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server to download the ollama.bin model and move it into the app folder in this directory. 
-Next, run the command ./app/ollama pull llama3
+Next, run the command:
+
+   **./app/ollama pull llama3**
 
 5.b On Windows, run:
 
-.\app\ollama.exe pull llama3
+  ** .\app\ollama.exe pull llama3**
 
 
 6. For size limitations, all users will need to pull the latest llama3 model themselves. The system will set the Ollama Models Environment variable to location: /app/models. Once you have pulled the llama3 model, you must move the blobs and manifest files rom their original location on your machine to the above specified folder.
@@ -73,9 +75,9 @@ Next, run the command ./app/ollama pull llama3
 
 ## Usage
 
-1. Open a command prompt in the application directory.
+1. Open a command prompt and cd into the **application directory**.
 
-2. Run the application: /app/main.py
+2. Run the application: **/app/main.py**
 
 
 ## Troubleshooting
