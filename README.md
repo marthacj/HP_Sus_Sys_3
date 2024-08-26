@@ -22,7 +22,7 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
 ## Prerequisites
 - Windows 10 or MacOS
 - Python 3.10 
- ** IMPORTANT**: Using a later Python version is possible but requires pip installing some packages separately to requirements.txt (see below)
+ **IMPORTANT**: Using a later Python version is possible but requires pip installing some packages separately to requirements.txt (see below)
 - Node.js (**v20.14.0**) and npm (v**10.8.1**)
 
 # For BEST results, please use with a GPU. The application can run on the CPU but is incredibly slow.
@@ -49,7 +49,7 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
 
    **IMPORTANT**: Check what the latest version of IF is using **npm view @grnsft/if versions**. At the time of development, the latest was 0.6.0 - the syntax of this project is not compatible with earlier versions and may not be compatible with later versions.
    
-   **npm install -g @grnsft/if@0.6.0 **
+   **npm install -g @grnsft/if@0.6.0**
    
    OR if still the latest version:
    
