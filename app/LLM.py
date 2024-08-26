@@ -425,7 +425,6 @@ def embed_sentences(sentences, model):
         logging.error(f"An error occurred: {e}")
     return index, embeddings
 
-import re
 def extract_json_from_response(response):
     # Use regex to find the first JSON array in the response
     json_match = re.search(r'\[.*?\]', response, re.DOTALL)
@@ -509,7 +508,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 prompt += f"{sentences[ind]}\n"
             else:
                 print(f"Warning: Index {ind} is out of range.")
-        #print('prompt:', prompt)
+        # print('prompt:', prompt)
         prompt += f"Use the above context to answer this question:\n{q}\n"
         # print("prompt:", prompt)
         if model_name == 'llama3':
@@ -531,8 +530,12 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 for ind in indices[0]:
                     prompt += f"{sentences[ind]}\n"
                 # print("prompt:", prompt)
-                response = send_prompt(prompt, interface="ollama")
-                print(response)
+                # response = send_prompt(prompt, interface="ollama")
+                # print(response)
+                response = ""
+                for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                    response += chunk
+                    print(chunk, end='', flush=True)
                 json_response = response
                 # remove any pre-amble or post comment from llm by getting location of first [ and last ]
                 json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
@@ -556,16 +559,22 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 VERY IMPORTANT: Only use the precise data field labels from the context I provided in the Python code you return.
                 Here's the context again:'''
                 prompt += json_response + "\n"
-                print("*" * 100)
-                response = send_prompt(prompt, interface="ollama")
+                # print("*" * 100)
+                response = ""
+                for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                    response += chunk
+                    # print(chunk, end='', flush=True)
+                # response = send_prompt(prompt, interface="ollama")
                 response = response.replace('```python', '').replace('```', '')
                 # assume that the function name is always returned correctly and use that to get rid of any unwanted llm  preamble
                 response = response[response.find('def calculation'):]
                 response = response.split('\n\n')[0]
+                print("\n\n\n")
                 print("*" * 100)
                 response += "\nparam = eval('''" + json_response + "''')\nprint(calculation(param))\n"
-                print(response)
-                print("*" * 100)
+                # print(response)
+
+                # print("*" * 100)
                 output_buffer = io.StringIO()
                 sys.stdout = output_buffer
                 exec(response)
@@ -584,7 +593,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 # response = send_prompt(prompt, interface="ollama", temperature=0)
                 for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
                     print(chunk, end='', flush=True)
-                print(f'\n\n\n', response)
+                # print(f'\n\n\n', response)
                 continue
             else: 
                 prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
@@ -612,7 +621,6 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
         else:
             print("No model available. Check the server.")
             continue
-
 
 
 def add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines, merged_df):
