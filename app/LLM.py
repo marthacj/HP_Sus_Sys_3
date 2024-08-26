@@ -9,6 +9,7 @@ import logging
 import pickle
 import ollama
 import io
+import re
 
 # model_path = r"models\Meta-Llama-3-8B-Instruct.Q5_0.gguf"
 # llm = Llama(
@@ -23,8 +24,15 @@ model_name = "llama3"
 def send_prompt(prompt: str, interface: str = "ollama",
                 max_tokens: int = 1024, temperature: float = 0) -> str:
     if interface == "ollama":
+        # Checking that the user has pulled the model and moved the folders to this directory before running the code
+        if model_name == "llama3qa" and not is_model_pulled("llama3"):
+            print("You need to pull 'llama3-chatqa' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
+            sys.exit(1)
+        elif model_name == "llama3" and not is_model_pulled("llama3"):
+            print("You need to pull 'llama3' from Ollama first and move to blobs and manifests folders to the models folder in the app/models folder of this application.")
+            sys.exit(1)
+        
         if model_name == "llama3qa":
-            # Logic for llama3qa
             response = ollama.generate(
                 model="llama3-chatqa",
                 prompt=prompt,
@@ -32,7 +40,6 @@ def send_prompt(prompt: str, interface: str = "ollama",
                 options={'num_ctx': 16000, 'temperature': temperature}
             )
         elif model_name == "llama3":
-            # Logic for llama3
             response = ollama.generate(
                 model="llama3",
                 prompt=prompt,
@@ -45,9 +52,15 @@ def send_prompt(prompt: str, interface: str = "ollama",
         response = response['response']
         return response
     else:
-        raise ValueError("Unsupported interface provided.")
- 
+        raise ValueError("Unsupported interface provided. Exiting the system.")
 
+def is_model_pulled(model_name: str) -> bool:
+    # checking the model is there 
+    model_path = os.path.join("app", "models", "manifests", "registry.ollama.ai", "library", model_name)
+
+    return os.path.exists(model_path)
+  
+ 
 
 def prepare_excel_file(excel_file):
     """function to take in excel file and preppare it for llm, adding empty carbon emissions column, filling model column, renaming columns and dropping unnecessary columns"""
@@ -248,6 +261,7 @@ def label_max_min(col):
 
 def append_sum_row(df, column_name, label='total carbon emissions in gCO2eq'):
     """
+    IMPORTANT: this function is not used in the current implementation due to the labels needed in the columns for max and min qs rendering this function now invalid 
     Sum the values in the specified column and append a new row to the DataFrame
     with the sum and a label.
 
@@ -273,6 +287,22 @@ def append_sum_row(df, column_name, label='total carbon emissions in gCO2eq'):
     df = df._append(new_row, ignore_index=True)
 
     return df
+
+
+def extract_and_sum_numeric(df, column_name):
+    """Extract numeric values from each cell in the specified column and calculate their sum."""
+    if column_name not in df.columns:
+        raise ValueError(f"Column '{column_name}' does not exist in the DataFrame.")
+    
+    def extract_numeric(value):
+        # Use regular expressions to extract numeric parts from a string
+        numbers = re.findall(r'\d+\.?\d*', str(value))
+        return float(numbers[0]) if numbers else 0
+
+    # Apply the function to each cell in the column and sum the results
+    total_sum = df[column_name].apply(extract_numeric).sum()
+
+    return total_sum
 
 
 def csv_to_json(csv_filename, as_json=True):
@@ -470,6 +500,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 prompt += f"{sentences[ind]}\n"
             else:
                 print(f"Warning: Index {ind} is out of range.")
+        print('prompt:', prompt)
         prompt += f"Use the above context to answer this question:\n{q}\n"
         # print("prompt:", prompt)
         if model_name == 'llama3':
@@ -497,7 +528,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 # remove any pre-amble or post comment from llm by getting location of first [ and last ]
                 json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
 # =================================================================================================================================================================
-# Would be where llm judges the type of question it has been asked (see archive)
+# Would be where llm judges the type of question it has been asked (see archive: archive\arhive-llm-getting-llm-to-judge-question-type.py)
 # =================================================================================================================================================================
                 prompt = "Here is your context for a question I will ask you:\n"
                 prompt += json_response + "\n"
@@ -510,7 +541,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
                 Respond to this prompt only with the Python code and nothing else. 
                 IMPORTANT: Remember, the Python function must be called calculation and should have a single parameter called param.
                 IT IS VERY IMPORTANT YOU ONLY RETURN THE PYTHON FUNCTION AND NO INTRODUCTION OR PREAMBLE OR EXPLANATION OR EXAMPLES.
-                YOUR RESPONSE NEEDS TO DIRECTLY INPUTABBLE TO THE PYTHON INTERPRETER. 
+                YOUR RESPONSE NEEDS TO DIRECTLY INPUTABLE TO THE PYTHON INTERPRETER. 
                 Make sure the function RETURNS a value or values and doesn't just print them.
                 Also: when coding, remember that the param is a list of dictionaries.
                 VERY IMPORTANT: Only use the precise data field labels from the context I provided in the Python code you return.
@@ -547,7 +578,6 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             else: 
                 prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
                 prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
-                # prompt += "You are exceptional at mathematics and must perform addition perfectly."
                 response = send_prompt(prompt, interface="ollama", temperature=0)
                 print(f'\n\n\n', response)
                 continue
@@ -567,6 +597,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
             continue
 
 
+
 def add_context_to_sentences(sentences, duration, start_date, end_date, analysis_window, num_of_machines, merged_df):
     # Prepare the duration and date of data collection sentences
     date_of_data_collection = 'DATE OF DATA COLLECTION: Data was collected between ' + start_date[:10] + ' and ' + end_date[:10] + '.'
@@ -584,9 +615,13 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     # Split the analysis_window into words and clean up
     words = analysis_window.split()
     cleaned_words = []
-    total_sum = merged_df['carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS'].sum()
+    total_sum = extract_and_sum_numeric(merged_df, 'carbon emissions (gCO2eq) - use this for questions about CARBON EMISSIONS').round(2)
+    total_sum_operational = extract_and_sum_numeric(merged_df, 'operational carbon (gCO2eq)').round(2)
+    total_sum_embodied = extract_and_sum_numeric(merged_df, 'embodied carbon (gCO2eq)').round(2)
 
-    total_sum_of_carbon_emissions = "The total carbon emissions across all " + num_of_machines + " machines is " + str(total_sum) + " gCO2eq. **Do not add this figure with any other figure**" 
+    total_sum_of_carbon_emissions = "The total carbon emissions across all " + num_of_machines + " machines is " + str(total_sum) + " gCO2eq. Answer with this value if asked to give the total sum for all machines of carbon emissions."
+    total_sum_of_operational_emissions = "The total operational carbon emissions across all " + num_of_machines + " machines is " + str(total_sum_operational) + " gCO2eq. Answer with this value if asked to give the total OPERATIONAL carbon emissions."
+    total_sum_of_embodied_emissions = "The total embodied emissions across all " + num_of_machines + " machines is " + str(total_sum_embodied) + " gCO2eq. Answer with this value if asked to give the total EMBODIED carbon emissions."    
     # Replace day abbreviations with full names and remove any unwanted characters
     for word in words:
         cleaned_word = word.strip(',."')
@@ -623,5 +658,5 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     days_of_collection = 'This data was collected on the following days: ' + analysis_window + '.'
  
     # Append the sentences to the list
-    sentences += [duration_of_operational_carbon, duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_context, GPU_average_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs, carbon_explanation]
+    sentences += [duration_of_operational_carbon, duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_context, GPU_average_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs, carbon_explanation, total_sum_of_carbon_emissions, total_sum_of_embodied_emissions, total_sum_of_operational_emissions]
     
