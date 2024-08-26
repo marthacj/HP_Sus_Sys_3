@@ -82,7 +82,7 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
 
 1. Open a command prompt and cd into the **application directory**.
 
-2. Run the application: **/app/main.py**
+2. Run the application: **python3 app/main.py**
 
 
 
