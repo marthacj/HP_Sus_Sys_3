@@ -58,8 +58,8 @@ if __name__ == '__main__':
     start_server()
     check_server()
     # If the user does not input any file path, the default test file path will be used
-    default_file_path = r"data\1038-0610-0614-day-larger-figures-test.xlsx"
-    target_dir = r"data\uploaded_excel_files"
+    default_file_path = r"data/1038-0610-0614-day-larger-figures-test.xlsx"
+    target_dir = r"data/uploaded_excel_files"
     uploaded_file_path = upload_file_to_application_directory(target_dir, default_file_path=default_file_path)
 
     # Check that the user hasn't quit, and/or that the file was uploaded correctly!
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     # taking in our raw 'uploaded.xlsx' file
     excel_file = excel_file
     # taking in the output yaml file with the carbon emissions data from IF
-    yaml_file = r'manifest1\outputs\z2_G4_Sci_Output.yaml'
+    yaml_file = r'manifest1/outputs/z2_G4_Sci_Output.yaml'
 
     try:
         # Load and prepare the Excel file
