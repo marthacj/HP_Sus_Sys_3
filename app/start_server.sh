@@ -8,7 +8,7 @@ echo "Current directory: $(pwd)"
 echo "Running command: ./ollama serve"
 
 # Set environment variable for model path
-export OLLAMA_MODELS="$(pwd)/models"
+export OLLAMA_MODELS="$(pwd)/ollama/models"
 echo "Ollama Model path set to: $OLLAMA_MODELS"
 
 chmod +x ./ollama
