@@ -41,7 +41,8 @@ def process_row(row, start_date, duration):
         'machine': int(1),
         'memory/thermal-design-power': row['memory/thermal-design-power'],
         'cpu-memory/utilization': float(row['CPU_memory_average']),
-        'gpu-memory/utilization': float(row['GPU_memory_average'])
+        'gpu-memory/utilization': float(row['GPU_memory_average']),
+        'PUE': float(row['PUE'])
 
     }
 
@@ -131,6 +132,7 @@ def process_csv(original_CSV_filepath, modified_CSV_filepath):
     df['time-reserved'] = 157784760
     df['network-intensity'] = 0.000124
     df['memory/thermal-design-power'] = ''
+    df['PUE'] = 1.4
     missing_values = []
     if duration is None:
         missing_values.append("Duration")
@@ -353,7 +355,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'method': 'Multiply',
                     'path': 'builtin',
                     'global-config': {
-                        'input-parameters': ["energy", "grid/carbon-intensity"],
+                        'input-parameters': ["pue-energy", "grid/carbon-intensity"],
                         'output-parameter': "carbon-operational"
                     }
                 },
@@ -371,7 +373,13 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                     'global-config': {
                         'functional-unit': 'machine'
                     }
-                }
+                },
+                'pue-times-energy': {
+                    'method': 'Multiply',
+                    'path': 'builtin',
+                    'global-config': {
+                        'input-parameters': ['energy', 'PUE'],
+                        'output-parameter': 'pue-energy'}}
             }
         },
         'tree': {
@@ -398,6 +406,7 @@ def generate_manifest(manifest_filepath, modified_CSV_filepath, duration, templa
                             'memory-wattage-times-duration',
                             'memory-wattage-to-energy-kwh',
                             'sum-energy-components',
+                            'pue-times-energy',
                             'sci-embodied',
                             'operational-carbon',
                             'sum-carbon',
@@ -431,6 +440,7 @@ def safe_print_file_info(filepath, description):
 
 if __name__ == '__main__':
     excel_file = r'data/1038-0610-0614-day.xlsx'
+    #excel_file = r'data/IF-sanity-check.xlsx'
     csv_file = convert_xlsx_to_csv(excel_file)
     # Define the input and output file paths
     original_CSV_filepath = csv_file
