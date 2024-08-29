@@ -470,7 +470,7 @@ def generate_question(index, embeddings, model, sentences, questions, machine_id
         for i, question in enumerate(questions):
             print(f"{i}: {question.strip()}")
         
-        print("\nEnter a question index (0-6), type your own question, or type 'bye' to exit:")
+        print("\nEnter a question index (0-7), type your own question, or type 'bye' to exit:")
         user_input = input().strip()
 
         if user_input.lower() == 'bye':
