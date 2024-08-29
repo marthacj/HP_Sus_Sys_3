@@ -227,8 +227,12 @@ if __name__ == '__main__':
     # Embed the sentences using the model
     index, embeddings = embed_sentences(sentences, model)
 
-    generate_question(index, embeddings, model, sentences, questions, machine_ids, model_name)
-    
+  
+
+    # Generate question function contains the dynamic programming approach for calculations
+    # generate_question(index, embeddings, model, sentences, questions, machine_ids, model_name)
+    # The process user input function contains a wrapper function instead which more flexibly performs calculations for more data points, the llm can judge its applicability for itself. can be applied to any machines not just a 'total' value for all machines
+    process_user_input(machine_ids, model, index, sentences, send_prompt, questions)
 
     
 
