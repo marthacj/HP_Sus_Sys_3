@@ -685,3 +685,187 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     # Append the sentences to the list
     sentences += [duration_of_operational_carbon, duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_context, GPU_average_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs, carbon_explanation, total_sum_of_carbon_emissions, total_sum_of_embodied_emissions, total_sum_of_operational_emissions]
     
+
+# ========================= HERE AND BELOW ARE ATTEMPTS TO OVERCOME THE ISSUE OF THE MODEL NOT BEING ABLE TO DO CALCULATIONS =========================
+
+
+def extract_metric_and_machines(question, machine_ids):
+    # Example: "What is the total CPU average for machines ld71r18u44dws, ld71r16u15ws?" where CPU average is the metric key mapped to the headers 
+    metric_keywords = {
+    "operational carbon": "operational carbon (gco2eq)",
+    "embodied carbon": "embodied carbon (gco2eq)",
+    'embodied emissions': "embodied carbon (gco2eq)",
+    "operational emissions": "operational carbon (gco2eq)",
+    "carbon emissions": "carbon emissions (gco2eq) - use this for questions about carbon emissions",
+    "number of cores": "number of cores",
+    "maximum core utilisation": "core maximum utilisation percent (single core of highest usage)",
+    "average core utilisation": "core average utilisation percent (single core of highest usage)",
+    "core occurrences over 80%": "core number of occurrences over 80percent",
+    "core total seconds over 80%": "core total seconds over 80percent",
+    "cpu max utilisation": "central processing unit maximum utilisation percent",
+    "cpu avg utilisation": "central processing unit average utilisation percent",
+    "cpu occurrences over 80%": "number of occurrences central processing unit went over 80percent",
+    "cpu total seconds over 80%": "central processing unit total seconds over 80percent",
+    "total ram": "total ram capacity in gb",
+    "max memory utilisation": "maximum memory utilisation percent",
+    "average memory utilisation": "average memory utilisation percent",
+    "gpu memory occurrences over 80%": "number of occurrences graphics processing unit memory went over 80percent",
+    "network traffic sent": "megabytes sent across network traffic",
+    "network traffic received": "megabytes received across network traffic",
+    "gpu max utilisation": "graphics processing unit maximum utilisation percent",
+    "gpu avg utilisation": "graphics processing unit average utilisation percent",
+    "gpu occurrences over 80%": "number of occurrences graphics processing unit went over 80percent",
+    "gpu max memory utilisation": "graphics processing unit maximum memory utilisation percent",
+    "gpu average memory utilisation": "graphics processing unit average memory utilisation percent"
+}
+    
+    # Identify the metric
+    metric = None
+    user_friendy_metric = None
+    for key in metric_keywords:
+        if key.lower() in question.lower():
+            metric = metric_keywords[key]
+            user_friendy_metric = key.lower()
+            break
+    
+    # Extract machine identifiers
+    machines = [machine_id for machine_id in machine_ids if machine_id in question]
+    
+    return metric, machines, user_friendy_metric
+
+
+def perform_calculation(metric, machines, operation="sum", sentences=None):
+    if sentences is None:
+        raise ValueError("Sentences list cannot be None")
+    
+    values = []
+    
+    for sentence in sentences:
+        machine_id = sentence.split(" ")[0]
+        if machine_id in machines:
+            if metric in sentence:
+                value_str = sentence.split('=')[-1].strip()
+                value_str = re.sub(r'[^\d.]+', '', value_str)
+                try:
+                    value = float(value_str)
+                    values.append(value)
+                    print('values', values)
+                except ValueError:
+                    # Handle the case where conversion to float fails
+                    print(f"Could not convert '{value_str}' to float.")
+    # Perform the specified operation
+    if operation == "sum":
+        return sum(values)
+    else:
+        raise ValueError("Unsupported operation")
+
+
+def response_decorator(func):
+    def wrapper(question, machine_ids, sentences):
+        # Determine if the question is asking for a calculation
+        if any(keyword in question.lower() for keyword in ["total", "sum", "add"]):
+            # Extract metric and machines
+            metric, machines, user_friendy_metric = extract_metric_and_machines(question, machine_ids)
+            if metric and machines:
+                operation = "sum" if "total" in question.lower() or "sum" in question.lower() or "add" in question.lower() else "average"
+                result = perform_calculation(metric, machines, operation, sentences)
+                print('resultllm', result)
+                if result is not None:
+                    return f"The total {user_friendy_metric} for machines {', '.join(machines)} is {result:.2f}.\n\n"
+        return func(question, machine_ids, sentences)
+    return wrapper
+
+
+@response_decorator
+def model_response(question, machine_ids, sentences):
+    return "blah hello blah."
+
+
+def parse_user_input(question, term_mapping):
+    question_lower = question.lower()
+    for term, standardised in term_mapping.items():
+        if term in question_lower:
+            return standardised
+    return None
+
+
+def process_user_input(machine_ids, model, index, sentences, send_prompt, questions):
+    TERM_MAPPING = {
+    'embodied carbon': 'embodied carbon (gCO2eq)',
+    'embodied emissions': 'embodied carbon (gCO2eq)',
+    'embodied': 'embodied carbon (gCO2eq)',
+    'operational carbon': 'operational carbon (gco2eq)',
+    'operational emissions': 'operational carbon (gco2eq)',
+    'operational': 'operational carbon (gco2eq)',
+    'carbon emissions': 'carbon emissions (gCO2eq)'
+}
+    num_of_machines = str(len(machine_ids))
+    while True:
+        # Display the list of questions with indices
+        for i, question in enumerate(questions):
+            print(f"{i}: {question.strip()}")
+        
+        print("\nEnter a question index (0-7), type your own question, or type 'bye' to exit:")
+        user_input = input().strip()
+
+        if user_input.lower() == 'bye':
+            print("Goodbye!")
+            break
+    
+        question_index = None
+        # Check if the input is a digit and within the valid range
+        if user_input.isdigit():
+            question_index = int(user_input)
+            if 0 <= question_index < len(questions):
+                # User selected a question from the list
+                q = questions[question_index]
+                print(f"You selected question {question_index}: {q}")
+            else:
+                print("Index out of range. Please enter a number between 0 and 7.")
+                continue
+        else:
+            # Processing the custom question
+            q = user_input
+            print(f"You entered a custom question: {q}")
+        standardised_metric = parse_user_input(q, TERM_MAPPING)
+        # Step 1: Get all RAG values for the question
+        q_embedding = model.encode(q)
+        q_embedding = q_embedding.reshape(1, -1)
+
+        # Calculate top_k based on 25% of the number of sentences
+        top_k = int(0.25 * len(sentences))
+        distances, indices = index.search(q_embedding, top_k)
+
+        # Step 2: Extract from the RAG the values the LLM thinks are most important to answer the question
+        prompt = "Here is your context for a question I will ask you:\n"
+        rag_sentences = []
+        for ind in indices[0]:
+            if 0 <= ind < len(sentences):
+                rag_sentences  += [sentences[ind]]
+                prompt += f"{sentences[ind]}\n"
+            else:
+                print(f"Warning: Index {ind} is out of range.")
+        prompt += f"Use the above context to answer this question:\n{q}\n"
+        prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n\n'
+        print("prompt:", prompt)    
+        if standardised_metric:
+            prompt += f"Use the above context to answer this question based on the metric: {standardised_metric}.\n"
+        else:
+            prompt += f"Use the above context to answer this question:\n{q}\n"
+        # Use the decorator logic to check if the question requires a special calculation
+        response = model_response(q, machine_ids, rag_sentences)
+        # print('response', response)
+        if "total" in q.lower() or "sum" in q.lower() or "add" in q.lower():
+            if response.startswith("The"):
+                # Skip further process if calculation is done
+                print(response)
+                continue
+
+        # Append additional instructions
+        prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
+        prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
+
+        # Get the response from the LLM
+        for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+            print(chunk, end='', flush=True)
+        print("\n\n\n")
