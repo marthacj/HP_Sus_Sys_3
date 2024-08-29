@@ -845,6 +845,90 @@ def process_user_input(machine_ids, model, index, sentences, send_prompt, questi
                 prompt += f"{sentences[ind]}\n"
             else:
                 print(f"Warning: Index {ind} is out of range.")
+        if question_index is not None and question_index == 1:
+                prompt += f"Use the above context to answer this question:\n{q}\n"
+                prompt += '''VERY IMPORTANT:  Return to me, in JSON format,
+                the data I need from the context above to answer the question.  The JSON format should be as follows:
+                [
+                    {
+                        "machine": <machine id>,
+                        <data-field0>: <data-field0 value>,
+                        <data-field1>: <data-field1 value>,
+                        etc.
+                    }
+                ]
+                The data field keys should ONLY be an exactly copied label (not an abbreviation or reduction) from the context I provided and the values should be the actual values from the context I provided.
+                VERY IMPORTANT: There are ''' + num_of_machines + ' machines in this total. Check the context properly. Do not leave any out. ' + num_of_machines + ' MACHINES therefore ' + num_of_machines + ' dictionaries in the list.'
+                prompt += "\nHere is that context again:\n"
+                for ind in indices[0]:
+                    prompt += f"{sentences[ind]}\n"
+                # print("prompt:", prompt)
+                # response = send_prompt(prompt, interface="ollama")
+                # print(response)
+                response = ""
+                for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                    response += chunk
+                    print(chunk, end='', flush=True)
+                json_response = response
+                # remove any pre-amble or post comment from llm by getting location of first [ and last ]
+                json_response = json_response[json_response.find('['):json_response.rfind(']')+1]
+# =================================================================================================================================================================
+# Would be where llm judges the type of question it has been asked (see archive: archive\arhive-llm-getting-llm-to-judge-question-type.py)
+# =================================================================================================================================================================
+                prompt = "Here is your context for a question I will ask you:\n"
+                prompt += json_response + "\n"
+                prompt += f"Here is a question for you to answer using the above context:\n{q}\n"
+                prompt += '''VERY IMPORTANT: Do not answer this question directly, write me a Python function called calculation that 
+                uses the context JSON to do the calculation and imports no libraries. The parameter must be called param.
+                The function should take as 
+                input a single JSON object with the data needed to answer the question and return only the numercial answer to the 
+                    question. 
+                Respond to this prompt only with the Python code and nothing else. 
+                IMPORTANT: Remember, the Python function must be called calculation and should have a single parameter called param.
+                IT IS VERY IMPORTANT YOU ONLY RETURN THE PYTHON FUNCTION AND NO INTRODUCTION OR PREAMBLE OR EXPLANATION OR EXAMPLES.
+                YOUR RESPONSE NEEDS TO DIRECTLY INPUTABLE TO THE PYTHON INTERPRETER. 
+                Make sure the function RETURNS a value or values and doesn't just print them.
+                Also: when coding, remember that the param is a list of dictionaries.
+                VERY IMPORTANT: Only use the precise data field labels from the context I provided in the Python code you return.
+                Here's the context again:'''
+                prompt += json_response + "\n"
+                # print("*" * 100)
+                response = ""
+                for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                    response += chunk
+                    print(chunk, end='', flush=True)
+                # response = send_prompt(prompt, interface="ollama")
+                response = response.replace('```python', '').replace('```', '')
+                # assume that the function name is always returned correctly and use that to get rid of any unwanted llm  preamble
+                response = response[response.find('def calculation'):]
+                response = response.split('\n\n')[0]
+                print("\n\n\n")
+                print("*" * 100)
+                response += "\nparam = eval('''" + json_response + "''')\nprint(calculation(param))\n"
+                print(response)
+
+                # print("*" * 100)
+                output_buffer = io.StringIO()
+                sys.stdout = output_buffer
+                exec(response)
+                sys.stdout = sys.__stdout__
+                """try getvalue() too"""
+                print(f"Answer in gcO2eq: {output_buffer.getvalue()}")
+                prompt = f'Here is your answer to the question {q}: {output_buffer.getvalue()}\n'
+                # prompt += output_buffer.getvalue()
+                prompt += f"If there is any additional relevant data in the following context which you think is important to add to answer the question {q}, enhance your answer with it.  IMPORTANT: If there is none, your next response should be empty.: "
+                for ind in indices[0]:
+                    if 0 <= ind < len(sentences):
+                        prompt += f"{sentences[ind]}\n"
+                    else:
+                        print(f"Warning: Index {ind} is out of range.")
+                prompt += f"Your response must be in plain English, including the value {output_buffer.getvalue()} in gCO2eq. Do not include any code in your response."
+                # response = send_prompt(prompt, interface="ollama", temperature=0)
+                for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
+                    print(chunk, end='', flush=True)
+                # print(f'\n\n\n', response)
+                print("\n\n\n")
+                continue
         prompt += f"Use the above context to answer this question:\n{q}\n"
         prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n\n'
         print("prompt:", prompt)    
