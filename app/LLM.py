@@ -686,9 +686,6 @@ def add_context_to_sentences(sentences, duration, start_date, end_date, analysis
     sentences += [duration_of_operational_carbon, duration_of_data_collection, date_of_data_collection, days_of_collection, CPU_average_context, GPU_average_context, CPU_maximum_high_context, GPU_maximum_high_context, sustainability_beliefs, carbon_explanation, total_sum_of_carbon_emissions, total_sum_of_embodied_emissions, total_sum_of_operational_emissions]
     
 
-# ========================= HERE AND BELOW ARE ATTEMPTS TO OVERCOME THE ISSUE OF THE MODEL NOT BEING ABLE TO DO CALCULATIONS =========================
-
-
 def extract_metric_and_machines(question, machine_ids):
     # Example: "What is the total CPU average for machines ld71r18u44dws, ld71r16u15ws?" where CPU average is the metric key mapped to the headers 
     metric_keywords = {
@@ -749,9 +746,7 @@ def perform_calculation(metric, machines, operation="sum", sentences=None):
                 try:
                     value = float(value_str)
                     values.append(value)
-                    print('values', values)
                 except ValueError:
-                    # Handle the case where conversion to float fails
                     print(f"Could not convert '{value_str}' to float.")
     # Perform the specified operation
     if operation == "sum":
@@ -930,8 +925,7 @@ def process_user_input(machine_ids, model, index, sentences, send_prompt, questi
                 print("\n\n\n")
                 continue
         prompt += f"Use the above context to answer this question:\n{q}\n"
-        prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n\n'
-        print("prompt:", prompt)    
+        prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n\n' 
         if standardised_metric:
             prompt += f"Use the above context to answer this question based on the metric: {standardised_metric}.\n"
         else:
