@@ -82,7 +82,7 @@ The system uses Ollama server to support the use of the offline Llama3 8B Model 
 
 1. Open a command prompt and cd into the **application directory**.
 
-2. Run the application: **python3 app/main.py**
+2. Run the application: **python app/main.py** 
 
 
 
@@ -92,6 +92,6 @@ This application is best compatible with Windows 10 or MacOS systems, using NVID
 
 If you encounter CUDA-related errors, ensure your NVIDIA drivers are up to date. This machine uses CUDA 11.8.0
 
-If you have issues with imports (e.g. with sentence-transformers, numpy, or pandas in particular), you may be required to uninstall sentence-transformers, uninstall numpy, and then reinstall numpy with pip install numpy==1.26.4. Ensure you have all the dependencies required for sentence-transformers with pip show sentence-transformers.
+If you have issues with imports (e.g. with sentence-transformers, numpy, or pandas in particular), you may be required to uninstall sentence-transformers, uninstall numpy, and then reinstall numpy with pip install numpy==1.26.4. Ensure you have all the dependencies required for sentence-transformers with pip show sentence-transformers. Use python3 app/main.py if "python app/main.py" not working. 
 
 Due to GPU memory requirements, this application has not be tested on another OS, but did run successfully on Docker using Linux distribution with Ubuntu22.04. 
