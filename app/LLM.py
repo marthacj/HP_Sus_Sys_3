@@ -764,7 +764,7 @@ def response_decorator(func):
             if metric and machines:
                 operation = "sum" if "total" in question.lower() or "sum" in question.lower() or "add" in question.lower() else "average"
                 result = perform_calculation(metric, machines, operation, sentences)
-                print('resultllm', result)
+                #print('resultllm', result)
                 if result is not None:
                     return f"The total {user_friendy_metric} for machines {', '.join(machines)} is {result:.2f}.\n\n"
         return func(question, machine_ids, sentences)
@@ -924,10 +924,9 @@ def process_user_input(machine_ids, model, index, sentences, send_prompt, questi
                 # print(f'\n\n\n', response)
                 print("\n\n\n")
                 continue
-        prompt += f"Use the above context to answer this question:\n{q}\n"
-        prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n\n' 
         if standardised_metric:
-            prompt += f"Use the above context to answer this question based on the metric: {standardised_metric}.\n"
+            prompt += f"Use the above context to answer the question based on the metric: {standardised_metric}.\n"
+            prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n\n'
         else:
             prompt += f"Use the above context to answer this question:\n{q}\n"
         # Use the decorator logic to check if the question requires a special calculation
@@ -940,8 +939,8 @@ def process_user_input(machine_ids, model, index, sentences, send_prompt, questi
                 continue
 
         # Append additional instructions
-        prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB"
-        prompt += 'DO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
+        prompt += f"VERY IMPORTANT: you must take into account all {num_of_machines} machines and their respective data in the context OTHERWISE I WILL LOSE MY JOB."
+        prompt += '\n\nDO NOT MIX UP THE VALUES ACROSS THE MACHINES! \n\n'
 
         # Get the response from the LLM
         for chunk in send_prompt(prompt=prompt, interface="ollama", temperature=0):
