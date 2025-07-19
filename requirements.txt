@@ -54,7 +54,7 @@ packaging==24.1
 pandas==2.2.2
 pillow==10.4.0
 pluggy==1.5.0
-pyautogen==0.2.32
+ag2==0.2.32
 pydantic==2.8.2
 pydantic_core==2.20.1
 pytest==8.3.2
